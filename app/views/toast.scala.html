@@ -1,7 +1,7 @@
 @(request: MessagesRequestHeader)
 @* Flash shows updates to a page *@
-@request.flash.data.map{ case (name, value) =>
-<div class="container grid-sm">
+@request.flash.data.map { case (name, value) =>
+<div class="container grid-sm" style="margin-bottom: 20px;">
     @if(name == "success") {
         <div class="toast toast-success text-center">@value</div>
     }

@@ -43,8 +43,8 @@ class InstanceController @Inject()(cc: MessagesControllerComponents) extends Mes
       val successFunction = { data: NewNetworkForm =>
          val node = State.bubblegum.createNode()
          if(node != null) {
-            State.newNetworkDescription(node.getIdentifier, data.name, data.display, State.randomColour())
-            Redirect(routes.InstanceController.index()).flashing("success" -> "Network added!")
+            val hash = State.newNetworkDescription(node.getIdentifier, data.name, data.display, State.randomColour()).getHash
+            Redirect(routes.NetworkController.show(hash)).flashing("success" -> "Network created successfully!")
          }
          else {
             Redirect(routes.InstanceController.index()).flashing("error" -> "An internal error occurred")
