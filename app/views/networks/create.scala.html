@@ -1,0 +1,22 @@
+@import controllers._
+@(form: Form[BasicForm], postUrl: Call)(implicit request: MessagesRequestHeader)
+
+
+@* Global errors are not tied to any particular form field *@
+@if(form.hasGlobalErrors) {
+    @form.globalErrors.map { error: FormError =>
+        <div>
+            @error.key: @error.message
+        </div>
+    }
+}
+
+@helper.form(postUrl) {
+    @helper.CSRF.formField
+
+    @helper.inputText(form("name"))
+
+    @helper.inputText(form("price"))
+
+    <button>Create widget</button>
+}

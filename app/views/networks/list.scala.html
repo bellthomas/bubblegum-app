@@ -1,0 +1,17 @@
+@import controllers._
+
+@(networks : Iterable[State.NetworkDescription])(implicit request: MessagesRequestHeader)
+
+@* Flash shows updates to a page *@
+@request.flash.data.map{ case (name, value) =>
+<div>@name: @value</div>
+}
+
+<h1>Networks</h1>
+<ul>
+    @for(network <- networks) {
+        <li>@network.getName (@network.getID) - <a href="@routes.NetworkController.showNetwork(network.getID)">View</a> | <a href="@routes.NetworkController.editForm(network.getID)">Edit</a></li>
+    }
+</ul>
+
+<a href="@routes.NetworkController.createForm()">Create Network</a>
