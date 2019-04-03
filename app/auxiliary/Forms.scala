@@ -25,3 +25,13 @@ object BootstrapForm {
       )(BootstrapForm.apply)(BootstrapForm.unapply)
    )
 }
+
+// Bootstrap Form
+case class BootstrapKeyForm(key: String)
+object BootstrapKeyForm {
+   val form: Form[BootstrapKeyForm] = Form(
+      mapping(
+         "key" -> text
+      )(BootstrapKeyForm.apply)(BootstrapKeyForm.unapply)
+   )
+}

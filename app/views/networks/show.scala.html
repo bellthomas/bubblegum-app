@@ -1,16 +1,122 @@
-@(name : State.NetworkDescription, size : Int, myInformation : String)(implicit request: MessagesRequestHeader)
+@import auxiliary._
 
-<a href="@routes.InstanceController.index()">Back to Networks Index</a>
+@(name : State.NetworkDescription, size : Int, myInformation : String, bootstrapForm: Form[BootstrapKeyForm], bootstrapPostUrl: Call)(implicit request: MessagesRequestHeader)
 
-@* Flash shows updates to a page *@
-@request.flash.data.map{ case (name, value) =>
-<div>@name: @value</div>
+@main("Network '"+ name.getName +"' - Bubblegum") {
+    <div id="header-colour">
+        <div class="container grid-lg">
+            <header class="navbar" style="padding:8px 0;">
+
+                <section class="navbar-section">
+                    <a href="@routes.InstanceController.index()" class="btn btn-link btn-white"><i class="icon icon-arrow-left"></i></a>
+                </section>
+                <section class="navbar-center">
+                    <img style="max-height:38px;" src="@routes.Assets.versioned("images/logo-256.png")" />
+                </section>
+                <section class="navbar-section">
+                    @if(size > 0) {
+                        <a href="#" id="open-modal-newpost" class="btn btn-white btn-white-border">New Post</a>
+                    }
+                </section>
+            </header>
+        </div>
+    </div>
+    <div id="breadcrumbs" class="container grid-lg">
+        <ul class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="@routes.InstanceController.index()">Networks</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="#">@name.getName</a>
+            </li>
+        </ul>
+    </div>
+
+    @toast(request)
+
+    @if(size == 0) {
+        <div class="container grid-lg">
+            <h1 class="text-center">@name.getName</h1>
+            <h5 class="text-center">This network is currently a singleton; you're the only one here. To get started you have two options.</h5>
+
+            <div class="columns" style="margin-top: 1.5rem;">
+                <div class="column col-6">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><strong>1. Bootstrap onto another Network</strong></div>
+                        </div>
+                        <div class="panel-body">
+                            <p>Paste another network's public information key below to join.</p>
+                            @if(bootstrapForm.hasGlobalErrors) {
+                                @bootstrapForm.globalErrors.map { error: FormError =>
+                                    <div>
+                                        @error.key: @error.message
+                                    </div>
+                                }
+                            }
+
+                            @helper.form(bootstrapPostUrl) {
+                                @helper.CSRF.formField
+
+                                @helper.input(bootstrapForm("key"), '_label -> "") { (id, name, value, args) =>
+                                    <div class="form-group">
+                                        <div class="col-12 col-sm-12">
+                                            <textarea class="form-input" rows="3" value="@value" name="@name" id="@id" placeholder="eg. MTAuMjQ4Ljk3LjE3OSw1MDM0NCxuZXR3b3JrLWVlZmZhYzM1LTg3YjQtNDY0YS04OTE5LWExMzcwOTcwNjU4MDozNjVCOTk2OTZDQjhEMEY4Q0YwRTNDNDNDQzNENkZGRUE1Q0IxQzYy" @toHtmlArgs(args)></textarea>
+                                        </div>
+                                    </div>
+                                }
+
+                                <button class="btn btn-primary" style="margin-bottom: 15px;">Bootstrap</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="column col-6">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><strong>2. Invite Friends to Join</strong></div>
+                        </div>
+                        <div class="panel-body">
+                            <p>Share this network's public information key to allow others to connect with you.</p>
+                            <div class="key-wrapper"><pre>@myInformation</pre></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="modal" id="modal-newpost">
+        <a href="#" id="bg-modal-newpost" class="modal-overlay" aria-label="Close"></a>
+        <div class="modal-container">
+            <div class="modal-header">
+                <a href="#" id="close-modal-newpost" class="btn btn-clear float-right" aria-label="Close"></a>
+                <div class="modal-title h5">Modal title</div>
+            </div>
+            <div class="modal-body">
+                <div class="content">
+                        <!-- content here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var modals = ["newpost"];
+        modals.forEach(function(modal) {
+            document.getElementById("open-modal-"+modal).onclick = function(){
+                document.getElementById("modal-"+modal).classList.add("active");
+            }
+            document.getElementById("close-modal-"+modal).onclick = function(){
+                document.getElementById("modal-"+modal).classList.remove("active");
+            }
+            document.getElementById("bg-modal-"+modal).onclick = function(){
+                document.getElementById("modal-"+modal).classList.remove("active");
+            }
+        });
+    </script>
 }
 
-<h1>@name.getName</h1>
-
-@if(size == 0) {
-    <h4>Singleton</h4>
-}
-<h4>@myInformation</h4>
-    asd
