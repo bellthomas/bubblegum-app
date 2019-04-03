@@ -1,22 +1,81 @@
 @import controllers._
-@(form: Form[BasicForm], postUrl: Call)(implicit request: MessagesRequestHeader)
+@import auxiliary._
+@(form: Form[NewNetworkForm], postUrl: Call)(implicit request: MessagesRequestHeader)
 
 
-@* Global errors are not tied to any particular form field *@
-@if(form.hasGlobalErrors) {
-    @form.globalErrors.map { error: FormError =>
-        <div>
-            @error.key: @error.message
+@main("Create Network - Bubblegum") {
+
+    <!-- Header -->
+    <div id="header-colour">
+        <div class="container grid-lg">
+            <header class="navbar" style="padding:8px 0;">
+
+                <section class="navbar-section">
+                    <a href="@routes.InstanceController.index()" class="btn btn-link btn-white"><i class="icon icon-arrow-left"></i></a>
+                </section>
+                <section class="navbar-center">
+                    <img style="max-height:38px;" src="@routes.Assets.versioned("images/logo-256.png")" />
+                </section>
+                <section class="navbar-section">
+                </section>
+            </header>
         </div>
-    }
-}
+    </div>
+    <div id="breadcrumbs" class="container grid-lg">
+        <ul class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="@routes.InstanceController.index()">Networks</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="#">Create Network</a>
+            </li>
+        </ul>
+    </div>
 
-@helper.form(postUrl) {
-    @helper.CSRF.formField
+    <div class="container grid-sm">
+        @* Global errors are not tied to any particular form field *@
+        @if(form.hasGlobalErrors) {
+            @form.globalErrors.map { error: FormError =>
+                <div>
+                    @error.key: @error.message
+                </div>
+            }
+        }
 
-    @helper.inputText(form("name"))
+        @helper.form(postUrl, 'class -> "form-horizontal") {
+            @helper.CSRF.formField
 
-    @helper.inputText(form("price"))
 
-    <button>Create widget</button>
+            @helper.input(form("name"), '_label -> "") { (id, name, value, args) =>
+                <div class="form-group">
+                    <div class="col-3 col-sm-12">
+                        <label class="form-label" for="@name">Network Name</label>
+                    </div>
+                    <div class="col-9 col-sm-12">
+                        <input class="form-input" value="@value" type="text" name="@name" id="@id" placeholder="eg. Jesus College CompScis" @toHtmlArgs(args)>
+                    </div>
+                </div>
+            }
+
+            @helper.input(form("display"), '_label -> "", '_showConstraints -> false) { (id, name, value, args) =>
+                <div class="form-group">
+                    <div class="col-3 col-sm-12">
+                        <label class="form-label" for="@name">Display Name</label>
+                    </div>
+                    <div class="col-9 col-sm-12">
+                        <input class="form-input" value="@value" type="text" name="@name" id="@id" placeholder="eg. Alexander" @toHtmlArgs(args)>
+                    </div>
+                </div>
+            }
+
+            <div class="float-right">
+                <button class="btn btn-primary">Create Network</button>
+            </div>
+        }
+
+        <form class="form-horizontal">
+
+                <!-- form structure -->
+        </form>
+    </div>
 }

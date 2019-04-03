@@ -2,16 +2,49 @@
 
 @(networks : Iterable[State.NetworkDescription])(implicit request: MessagesRequestHeader)
 
-@* Flash shows updates to a page *@
-@request.flash.data.map{ case (name, value) =>
-<div>@name: @value</div>
-}
+@main("Bubblegum") {
 
-<h1>Networks</h1>
-<ul>
-    @for(network <- networks) {
-        <li>@network.getName (@network.getID) - <a href="@routes.NetworkController.showNetwork(network.getID)">View</a> | <a href="@routes.NetworkController.editForm(network.getID)">Edit</a></li>
+    <!-- Header -->
+    <div id="header-colour">
+        <div class="container grid-lg">
+            <header class="navbar" style="padding:8px 0;">
+
+                <section class="navbar-section">
+                </section>
+                <section class="navbar-center">
+                    <img style="max-height:38px;" src="@routes.Assets.versioned("images/logo-256.png")" />
+                </section>
+                <section class="navbar-section">
+                    <a href="@routes.InstanceController.createForm()" class="btn btn-link btn-white"><i class="icon icon-plus"></i></a>
+                </section>
+            </header>
+        </div>
+    </div>
+
+    @toast(request)
+
+    @if(networks.size > 0) {
+        <div class="container grid-lg" style="margin-top: 20px;">
+            <div class="columns">
+            @for(network <- networks) {
+                <div class="column col-4">
+                    <a href="@routes.NetworkController.show(network.getHash)" style="text-decoration: none;">
+                        <div class="card" style="background-color:
+                        @network.getColour;">
+                            <div class="card-header">
+                                <div class="card-title h5">@network.getName</div>
+                                <div class="card-subtitle"><a href="@routes.InstanceController.editForm(network.getHash)">Edit</a> · <a href="#">Delete</a></div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+            </div>
+        </div>
+    } else {
+        <div class="container grid-lg" style="margin-top: 5rem;">
+            <h4 class="text-center">Nothing here!</h4>
+            <h6 class="text-center">Click the <i class="icon icon-plus" style="font-size: 0.6rem;margin-top: -0.13rem;"></i> icon to create a network.</h6>
+        </div>
     }
-</ul>
-
-<a href="@routes.NetworkController.createForm()">Create Network</a>
+}

@@ -1,4 +1,16 @@
-@(name : State.NetworkDescription)
-<a href="@routes.NetworkController.index()">Back to Networks Index</a>
+@(name : State.NetworkDescription, size : Int, myInformation : String)(implicit request: MessagesRequestHeader)
+
+<a href="@routes.InstanceController.index()">Back to Networks Index</a>
+
+@* Flash shows updates to a page *@
+@request.flash.data.map{ case (name, value) =>
+<div>@name: @value</div>
+}
+
 <h1>@name.getName</h1>
-<h4>@name.getID</h4>
+
+@if(size == 0) {
+    <h4>Singleton</h4>
+}
+<h4>@myInformation</h4>
+    asd

@@ -4,12 +4,14 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /                           controllers.NetworkController.index
-GET     /new                        controllers.NetworkController.createForm
-POST    /new                        controllers.NetworkController.createSubmit
-GET     /:id                        controllers.NetworkController.showNetwork(id)
-GET     /:id/edit                   controllers.NetworkController.editForm(id)
-POST    /:id/edit                   controllers.NetworkController.editSubmit(id)
+GET     /                           controllers.InstanceController.index
+GET     /new                        controllers.InstanceController.createForm
+POST    /new                        controllers.InstanceController.createSubmit
+GET     /:id                        controllers.NetworkController.show(id)
+GET     /:id/bootstrap              controllers.NetworkController.bootstrapForm(id)
+POST    /:id/bootstrap              controllers.NetworkController.bootstrapSubmit(id)
+GET     /:id/edit                   controllers.InstanceController.editForm(id)
+POST    /:id/edit                   controllers.InstanceController.editSubmit(id)
 
 
 # An example controller showing how to use dependency injection
