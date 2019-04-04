@@ -27,7 +27,7 @@
         <div class="container grid-lg" style="margin-top: 20px;">
             <div class="columns">
             @for(network <- networks) {
-                <div class="column col-4">
+                <div class="column col-4 col-md-6 col-sm-12">
                     <a href="@routes.NetworkController.show(network.getHash)" style="text-decoration: none;">
                         <div class="card" style="background-color:
                         @network.getColour;">

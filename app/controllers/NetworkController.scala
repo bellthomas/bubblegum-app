@@ -7,6 +7,8 @@ import javax.inject._
 import play.api.data.Form
 import play.api.mvc._
 import auxiliary._
+import org.apache.commons.text.StringEscapeUtils
+import scala.collection.JavaConverters._
 
 @Singleton
 class NetworkController @Inject()(cc: MessagesControllerComponents) extends MessagesAbstractController(cc) {
@@ -21,7 +23,8 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
          val size = node.getRoutingTable.getSize
          val myInformationString = node.getServer.getLocal.getHostAddress + "," + node.getServer.getPort + "," + node.getRecipientID
          val myInformation = Base64.getEncoder().encodeToString(myInformationString.getBytes)
-         Ok(views.html.networks.show(networkDescription, size, myInformation, BootstrapKeyForm.form, routes.NetworkController.bootstrapSubmit(id)))
+         val posts = State.getFeed(id, 4);
+         Ok(views.html.networks.show(networkDescription, size, myInformation, BootstrapKeyForm.form, posts))
       }
    }
 
@@ -32,11 +35,8 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
             Redirect(routes.InstanceController.index()).flashing("error" -> "Network not found")
          }
          else {
-            val node = State.bubblegum.getNode(networkDescription.getID)
-            val size = node.getRoutingTable.getSize
-            val myInformationString = node.getServer.getLocal.getHostAddress + "," + node.getServer.getPort + "," + node.getRecipientID
-            val myInformation = Base64.getEncoder().encodeToString(myInformationString.getBytes)
-            BadRequest(views.html.networks.show(networkDescription, size, myInformation, formWithErrors, routes.NetworkController.bootstrapSubmit(id)))
+            Redirect(routes.NetworkController.show(id)).flashing("error" -> "Bootstrap failed")
+
          }
       }
 
@@ -82,6 +82,39 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
       }
 
       val formValidationResult = BootstrapKeyForm.form.bindFromRequest
+      formValidationResult.fold(errorFunction, successFunction)
+   }
+
+
+   def newPost(id : String) = Action { implicit request: MessagesRequest[AnyContent] =>
+      val errorFunction = { formWithErrors: Form[PostForm] =>
+         Redirect(routes.NetworkController.show(id)).flashing("error" -> "Failed to publish post")
+      }
+
+      val successFunction = { data: PostForm =>
+         val networkDescription = State.getNetworkDescription(id)
+         if(networkDescription != null) {
+            val node = State.bubblegum.getNode(networkDescription.getID)
+            if(node != null) {
+               val safe = data.content.replace("<", "&lt;").replace(">", "&gt;")
+               val post = node.savePost(safe)
+               if(post == null) {
+                  Redirect(routes.NetworkController.show(id)).flashing("error" -> "Failed to publish post")
+               }
+               else {
+                  Redirect(routes.NetworkController.show(id)).flashing("success" -> "Post published successfully!")
+               }
+            }
+            else {
+               Redirect(routes.InstanceController.index()).flashing("error" -> "Network not found")
+            }
+         }
+         else {
+            Redirect(routes.InstanceController.index()).flashing("error" -> "Network not found")
+         }
+      }
+
+      val formValidationResult = PostForm.form.bindFromRequest
       formValidationResult.fold(errorFunction, successFunction)
    }
 

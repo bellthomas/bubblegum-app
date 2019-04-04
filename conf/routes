@@ -11,6 +11,7 @@ GET     /:id                        controllers.NetworkController.show(id)
 POST    /:id/bootstrap              controllers.NetworkController.bootstrapSubmit(id)
 GET     /:id/edit                   controllers.InstanceController.editForm(id)
 POST    /:id/edit                   controllers.InstanceController.editSubmit(id)
+POST    /:id/post                   controllers.NetworkController.newPost(id)
 
 
 # An example controller showing how to use dependency injection

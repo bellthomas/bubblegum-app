@@ -15,23 +15,21 @@ object NewNetworkForm {
 }
 
 // Bootstrap Form
-case class BootstrapForm(ip: String, port: Int, key: String)
-object BootstrapForm {
-   val form: Form[BootstrapForm] = Form(
-      mapping(
-         "ip" -> text,
-         "port" -> number,
-         "key" -> text
-      )(BootstrapForm.apply)(BootstrapForm.unapply)
-   )
-}
-
-// Bootstrap Form
 case class BootstrapKeyForm(key: String)
 object BootstrapKeyForm {
    val form: Form[BootstrapKeyForm] = Form(
       mapping(
          "key" -> text
       )(BootstrapKeyForm.apply)(BootstrapKeyForm.unapply)
+   )
+}
+
+// Post Form
+case class PostForm(content: String)
+object PostForm {
+   val form: Form[PostForm] = Form(
+      mapping(
+         "content" -> text
+      )(PostForm.apply)(PostForm.unapply)
    )
 }

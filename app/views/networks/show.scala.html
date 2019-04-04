@@ -1,6 +1,8 @@
 @import auxiliary._
+@import java.text.SimpleDateFormat
+@import io.hbt.bubblegum.core.databasing.Post
 
-@(name : State.NetworkDescription, size : Int, myInformation : String, bootstrapForm: Form[BootstrapKeyForm], bootstrapPostUrl: Call)(implicit request: MessagesRequestHeader)
+@(name : State.NetworkDescription, size : Int, myInformation : String, bootstrapForm: Form[BootstrapKeyForm], posts: java.util.List[Post])(implicit request: MessagesRequestHeader)
 
 @main("Network '"+ name.getName +"' - Bubblegum") {
     <div id="header-colour">
@@ -22,14 +24,25 @@
         </div>
     </div>
     <div id="breadcrumbs" class="container grid-lg">
-        <ul class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="@routes.InstanceController.index()">Networks</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="#">@name.getName</a>
-            </li>
-        </ul>
+        <div class="columns">
+            <ul class="breadcrumb column col-6 col-sm-12">
+                <li class="breadcrumb-item">
+                    <a href="@routes.InstanceController.index()">Networks</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">@name.getName</a>
+                </li>
+            </ul>
+            <div class="toolbar float-right column col-6 col-sm-12">
+                <span><a href="#" id="open-modal-menu"><i class="icon icon-apps" style="color:#66758c;"></i></a></span>
+                <span style="color: #66758c;padding-right: 20px;padding-left: 10px;margin-top: 1px;"> / </span>
+                <span>
+                    <label class="form-switch">
+                        <input type="checkbox"><i class="form-icon"></i> Auto Refresh
+                    </label>
+                </span>
+            </div>
+        </div>
     </div>
 
     @toast(request)
@@ -40,7 +53,7 @@
             <h5 class="text-center">This network is currently a singleton; you're the only one here. To get started you have two options.</h5>
 
             <div class="columns" style="margin-top: 1.5rem;">
-                <div class="column col-6">
+                <div class="column col-6 col-sm-12">
                     <div class="panel">
                         <div class="panel-header">
                             <div class="panel-title"><strong>1. Bootstrap onto another Network</strong></div>
@@ -55,7 +68,7 @@
                                 }
                             }
 
-                            @helper.form(bootstrapPostUrl) {
+                            @helper.form(routes.NetworkController.bootstrapSubmit(name.getHash)) {
                                 @helper.CSRF.formField
 
                                 @helper.input(bootstrapForm("key"), '_label -> "") { (id, name, value, args) =>
@@ -71,7 +84,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="column col-6">
+                <div class="column col-6 col-sm-12">
                     <div class="panel">
                         <div class="panel-header">
                             <div class="panel-title"><strong>2. Invite Friends to Join</strong></div>
@@ -84,19 +97,28 @@
                 </div>
             </div>
         </div>
+
+    } else {
+        <div class="container grid-lg">
+            @*Feed*@
+            @if(posts != null) {
+                @for(p <- posts) {
+                   <p>@{new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(new java.util.Date(p.getTimeCreated))} : @p.getContent</p>
+                }
+            }
+        </div>
     }
 
-    <div class="modal" id="modal-newpost">
-        <a href="#" id="bg-modal-newpost" class="modal-overlay" aria-label="Close"></a>
+    @*Modals*@
+    <div class="modal" id="modal-menu">
+        <a href="#" id="bg-modal-menu" class="modal-overlay" aria-label="Close"></a>
         <div class="modal-container">
             <div class="modal-header">
-                <a href="#" id="close-modal-newpost" class="btn btn-clear float-right" aria-label="Close"></a>
-                <div class="modal-title h5">Modal title</div>
+                <a href="#" id="close-modal-menu" class="btn btn-clear float-right" aria-label="Close"></a>
+                <div class="modal-title h5">Network Settings</div>
             </div>
             <div class="modal-body">
-                <div class="content">
-                        <!-- content here -->
-                </div>
+
             </div>
             <div class="modal-footer">
 
@@ -104,8 +126,39 @@
         </div>
     </div>
 
+    <div class="modal" id="modal-newpost">
+        <a href="#" id="bg-modal-newpost" class="modal-overlay" aria-label="Close"></a>
+        <div class="modal-container">
+            <div class="modal-header">
+                <a href="#" id="close-modal-newpost" class="btn btn-clear float-right" aria-label="Close"></a>
+                <div class="modal-title h5">New Post</div>
+            </div>
+            @helper.form(routes.NetworkController.newPost(name.getHash)) {
+                @helper.CSRF.formField
+
+                <div class="modal-body">
+                    <div class="content">
+                        @helper.input(bootstrapForm("content"), '_label -> "") { (id, name, value, args) =>
+                            <div class="form-group">
+                                <div class="col-12 col-sm-12">
+                                    <textarea class="form-input" rows="5" value="@value" name="@name" id="@id" placeholder="eg. I wandered lonely as a cloud..." @toHtmlArgs(args)></textarea>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary float-right" style="margin-bottom: 15px;">Post</button>
+                </div>
+            }
+        </div>
+    </div>
+
     <script>
-        var modals = ["newpost"];
+        var modals = ["menu"];
+        @if(size > 0) {
+            modals.push("newpost");
+        }
         modals.forEach(function(modal) {
             document.getElementById("open-modal-"+modal).onclick = function(){
                 document.getElementById("modal-"+modal).classList.add("active");

@@ -3,6 +3,10 @@
     background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);  /* Chrome 10-25, Safari 5.1-6 */
     background: linear-gradient(to right, #24243e, #302b63, #0f0c29); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
     margin-bottom: 5px;
+    position: sticky;
+    width: 100%;
+    top: 0;
+    z-index: 399;
 }
 #breadcrumbs {
     margin-bottom: 20px;
@@ -54,4 +58,35 @@ pre {
     white-space: -o-pre-wrap;
     word-wrap: break-word;
     margin: 0;
+}
+
+.modal-container .modal-header {
+    padding: .8rem .8rem 0.4rem .8rem;
+}
+
+.modal-container .modal-body {
+    padding: 0 .8rem;
+}
+
+.modal-container .modal-footer {
+    padding: 0 .8rem;
+}
+
+.form-input {
+    border: .05rem solid #e9ecf1;
+}
+.toolbar {
+    margin: .2rem 0;
+    padding: .2rem 0;
+}
+.toolbar span {
+    padding: .2rem 0;
+    float: right;
+}
+.toolbar .form-switch {
+    font-size: 0.7rem;
+    line-height: 1.4rem;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
 }
