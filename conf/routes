@@ -12,6 +12,7 @@ POST    /:id/bootstrap              controllers.NetworkController.bootstrapSubmi
 GET     /:id/edit                   controllers.InstanceController.editForm(id)
 POST    /:id/edit                   controllers.InstanceController.editSubmit(id)
 POST    /:id/post                   controllers.NetworkController.newPost(id)
+POST    /:id/ajax/getEpoch          controllers.NetworkController.getEpoch(id)
 
 
 # An example controller showing how to use dependency injection

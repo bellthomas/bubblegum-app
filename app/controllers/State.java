@@ -1,5 +1,6 @@
 package controllers;
 
+import com.google.common.graph.Network;
 import io.hbt.bubblegum.core.Bubblegum;
 import io.hbt.bubblegum.core.Configuration;
 import io.hbt.bubblegum.core.auxiliary.NetworkingHelper;
@@ -76,6 +77,14 @@ public class State {
         return descriptions.get(hash);
     }
 
+    static BubblegumNode getNodeForHash(String hash) {
+        NetworkDescription nd = getNetworkDescription(hash);
+        if(nd != null) {
+            return bubblegum.getNode(nd.getID());
+        }
+        return null;
+    }
+
     static NetworkDescription updateNetworkDescription(String hash, String name, String displayName) {
         if(descriptions.containsKey(hash)) {
             NetworkDescription nd = descriptions.get(hash);
@@ -120,9 +129,9 @@ public class State {
         return found;
     }
 
-    private static Set<Post> refreshEpoch(BubblegumNode node, long epoch) {
+    static List<Post> refreshEpoch(BubblegumNode node, long epoch) {
         List<byte[]> idBytes = node.lookup(NodeID.hash(epoch));
-        HashSet<Post> results = new HashSet<>();
+        List<Post> results = new ArrayList<>();
 
         if(!cache.containsKey(node.getIdentifier())) cache.put(node.getIdentifier(), new HashMap<>());
         HashMap<String, Post> nodeCache = cache.get(node.getIdentifier());
@@ -159,6 +168,8 @@ public class State {
                 }
             }
         }
+
+        Collections.sort(results, (a, b) -> -1 * (int)(a.getTimeCreated() - b.getTimeCreated()));
         return results;
     }
 

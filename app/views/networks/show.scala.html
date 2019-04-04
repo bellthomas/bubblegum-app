@@ -154,22 +154,100 @@
         </div>
     </div>
 
+    <form style="display:none;" method="post" id="ajaxForm" action="/">
+        @helper.CSRF.formField
+    </form>
     <script>
-        var modals = ["menu"];
-        @if(size > 0) {
-            modals.push("newpost");
-        }
-        modals.forEach(function(modal) {
-            document.getElementById("open-modal-"+modal).onclick = function(){
-                document.getElementById("modal-"+modal).classList.add("active");
+        // State
+        var gettingPosts = @(size > 0);
+        var epochDuration = @io.hbt.bubblegum.core.Configuration.BIN_EPOCH_DURATION;
+
+        var posts = {};
+        var epochsLoaded = new Set();
+        var timeAtLastReload = 0;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var modals = ["menu"];
+            @if(size > 0) {
+                modals.push("newpost");
             }
-            document.getElementById("close-modal-"+modal).onclick = function(){
-                document.getElementById("modal-"+modal).classList.remove("active");
-            }
-            document.getElementById("bg-modal-"+modal).onclick = function(){
-                document.getElementById("modal-"+modal).classList.remove("active");
+            modals.forEach(function(modal) {
+                document.getElementById("open-modal-"+modal).onclick = function(){
+                    document.getElementById("modal-"+modal).classList.add("active");
+                }
+                document.getElementById("close-modal-"+modal).onclick = function(){
+                    document.getElementById("modal-"+modal).classList.remove("active");
+                }
+                document.getElementById("bg-modal-"+modal).onclick = function(){
+                    document.getElementById("modal-"+modal).classList.remove("active");
+                }
+            });
+
+            if(gettingPosts) {
+                var reloadTime = Date.now();
+                getEpoch(parseInt(reloadTime / epochDuration));
+                timeAtLastReload = reloadTime;
             }
         });
+
+        function reload() {
+            if(gettingPosts) {
+                var refreshTime = Date.now();
+                var newHead = parseInt(refreshTime / epochDuration);
+                var headAtLastReload = parseInt(timeAtLastReload / epochDuration)
+
+                if(newHead == headAtLastReload) {
+                    getEpoch(newHead);
+                    timeAtLastReload = refreshTime;
+                } else if (newHead == (headAtLastReload + 1)) {
+                    getEpoch(newHead);
+                    getEpoch(headAtLastReload);
+                    timeAtLastReload = refreshTime;
+                } else {
+                    // Clear board and reload fresh
+                    location.reload();
+                }
+
+                console.log("Reloaded: new time is " + timeAtLastReload);
+            }
+        }
+
+        function getEpoch(num) {
+            var ajaxForm = document.getElementById("ajaxForm");
+            var token;
+            for (var i = 0; i < ajaxForm.childNodes.length; i++) {
+                if (ajaxForm.childNodes[i].name && ajaxForm.childNodes[i].name == "csrfToken") {
+                  token = ajaxForm.childNodes[i].value;
+                  break;
+                }
+            }
+
+            if(token && gettingPosts) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', "@helper.CSRF(routes.NetworkController.getEpoch(name.getHash))");
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('X-CSRF-Token', token);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        console.log("Response: " + xhr.responseText)
+                        if(xhr.responseText.length > 0) {
+                            try {
+                                var result = JSON.parse(xhr.responseText);
+                                console.log(result);
+                                epochsLoaded.add(num);
+                            } catch(e) {
+                                console.log(e);
+                            }
+                        }
+                    }
+                    else if (xhr.status !== 200) {
+                        console.log('Request failed.  Returned status of ' + xhr.status + ": " + xhr.responseText);
+                    }
+                };
+                console.log({ "epoch": num, "fromTime": timeAtLastReload });
+                xhr.send(JSON.stringify({ "epoch": num, "fromTime": timeAtLastReload }));
+            }
+        }
     </script>
 }
 

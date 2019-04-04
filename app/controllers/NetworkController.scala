@@ -1,14 +1,20 @@
 package controllers
 
 import java.net.{InetAddress, UnknownHostException}
+import java.security.MessageDigest
 import java.util.Base64
+import java.util.stream.Collectors
 
 import javax.inject._
 import play.api.data.Form
 import play.api.mvc._
 import auxiliary._
+import io.hbt.bubblegum.core.databasing.Post
 import org.apache.commons.text.StringEscapeUtils
+import play.api.libs.json._
+
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 @Singleton
 class NetworkController @Inject()(cc: MessagesControllerComponents) extends MessagesAbstractController(cc) {
@@ -116,6 +122,36 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
 
       val formValidationResult = PostForm.form.bindFromRequest
       formValidationResult.fold(errorFunction, successFunction)
+   }
+
+
+   def getEpoch(hash : String) = Action { implicit request: MessagesRequest[AnyContent] =>
+      PostRetrievalRequest.userForm.bindFromRequest().fold(
+         formWithErrors => {
+            BadRequest("{'message':'Invalid request'}")
+         },
+         user => {
+            val node = State.getNodeForHash(hash)
+            if(node != null) {
+               val posts = State.refreshEpoch(node, user.epoch).asScala
+               val entities = mutable.Map[String, JsValue]()
+               for(post <- posts) {
+                  entities(post.getID) = Json.obj(
+                     "owner" -> post.getOwner,
+                     "content" -> post.getContent,
+                     "id" -> post.getID,
+                     "time" -> post.getTimeCreated,
+                     "response" -> post.getResponse
+                  )
+               }
+
+               Ok(Json.stringify(Json.toJson(entities)))
+            }
+            else {
+               BadRequest("{'message':'No node found'}")
+            }
+         }
+      )
    }
 
 }

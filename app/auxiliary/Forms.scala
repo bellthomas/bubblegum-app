@@ -2,6 +2,7 @@ package auxiliary
 
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.mvc._
 
 // New Network
 case class NewNetworkForm(name: String, display: String)
@@ -31,5 +32,18 @@ object PostForm {
       mapping(
          "content" -> text
       )(PostForm.apply)(PostForm.unapply)
+   )
+}
+
+// Post Retrieve AJAX
+case class PostRetrievalRequest(epoch: Int, fromTime: Long)
+object PostRetrievalRequest {
+   //validation 1 goes here
+   val userForm = Form(
+      mapping(
+         "epoch" -> number(0, Int.MaxValue),
+         "fromTime" -> longNumber(0, Long.MaxValue),
+
+      )(PostRetrievalRequest.apply)(PostRetrievalRequest.unapply)
    )
 }
