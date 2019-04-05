@@ -29,8 +29,7 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
          val size = node.getRoutingTable.getSize
          val myInformationString = node.getServer.getLocal.getHostAddress + "," + node.getServer.getPort + "," + node.getRecipientID
          val myInformation = Base64.getEncoder().encodeToString(myInformationString.getBytes)
-         val posts = State.getFeed(id, 4);
-         Ok(views.html.networks.show(networkDescription, size, myInformation, BootstrapKeyForm.form, posts))
+         Ok(views.html.networks.show(networkDescription, size, myInformation, BootstrapKeyForm.form))
       }
    }
 
@@ -134,21 +133,23 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
             val node = State.getNodeForHash(hash)
             if(node != null) {
                val posts = State.refreshEpoch(node, user.epoch).asScala
-               val entities = mutable.Map[String, JsValue]()
+               val entities = mutable.ListBuffer[JsValue]()
                for(post <- posts) {
-                  entities(post.getID) = Json.obj(
-                     "owner" -> post.getOwner,
-                     "content" -> post.getContent,
-                     "id" -> post.getID,
-                     "time" -> post.getTimeCreated,
-                     "response" -> post.getResponse
-                  )
+                  if(post.getTimeCreated > user.fromTime) {
+                     entities += Json.obj(
+                        "owner" -> post.getOwner,
+                        "content" -> post.getContent,
+                        "id" -> post.getID,
+                        "time" -> post.getTimeCreated,
+                        "response" -> post.getResponse
+                     )
+                  }
                }
 
-               Ok(Json.stringify(Json.toJson(entities)))
+               Ok(Json.stringify(Json.obj("data" -> Json.toJson(entities))))
             }
             else {
-               BadRequest("{'message':'No node found'}")
+               BadRequest("{'message':'No node found.'}")
             }
          }
       )

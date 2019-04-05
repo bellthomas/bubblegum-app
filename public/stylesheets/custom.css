@@ -11,6 +11,8 @@
 #breadcrumbs {
     margin-bottom: 20px;
     border-bottom: 1px solid #7e7bab3b;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
 }
 .btn-white {
     color: #fff !important;
@@ -89,4 +91,82 @@ pre {
     margin: 0;
     padding-top: 0;
     padding-bottom: 0;
+}
+.post-tile{
+    padding: 10px;
+    margin-top: -12px;
+}
+
+.toast {
+    overflow: hidden;
+}
+.toast.toast-error {
+    background: rgba(232, 37, 0, 0.95);
+    border-color: rgba(232, 37, 0, 1);
+}
+.fade {
+    -webkit-transition: font-size 0.5s;
+    -moz-transition: font-size 0.5s;
+    -ms-transition: font-size 0.5s;
+    -o-transition: font-size 0.5s;
+    transition: font-size 0.5s;
+    -webkit-transition: border-width 0.5s;
+    -moz-transition: border-width 0.5s;
+    -ms-transition: border-width 0.5s;
+    -o-transition: border-width 0.5s;
+    transition: border-width 0.5s;
+    -webkit-transition: padding 0.5s;
+    -moz-transition: padding 0.5s;
+    -ms-transition: padding 0.5s;
+    -o-transition: padding 0.5s;
+    transition: padding 0.5s;
+    -webkit-transition: margin 0.5s;
+    -moz-transition: margin 0.5s;
+    -ms-transition: margin 0.5s;
+    -o-transition: margin 0.5s;
+    transition: margin 0.5s;
+    -webkit-transition: line-height 0.5s;
+    -moz-transition: line-height 0.5s;
+    -ms-transition: line-height 0.5s;
+    -o-transition: line-height 0.5s;
+    transition: line-height 0.5s;
+}
+.fade.hidden {
+    border-width: 0;
+    padding: 0;
+    margin: 0;
+    line-height: 0;
+}
+
+.timeline .timeline-item::before {
+    background: #edeff3;
+}
+h5.post-headline {
+    margin-bottom: 0.1em;
+}
+.reply-badge {
+    font-size: 0.5em;
+    padding: 0.4em 0.8em;
+}
+.post-content {
+    line-height: 1.4em;
+    margin-top: 0.7em;
+}
+.post-content.hide {
+    max-height: 11.2em; /* Only show 8 lines to start with */
+    overflow-y: hidden;
+}
+.post-content.show {
+    height: auto;
+    overflow-y: visible;
+}
+a samp {
+    text-decoration: none !important;
+    color: #303742;
+    font-weight: 700;
+    font-size: 0.6em;
+    padding: 0.4em 0.8em 0.4em 1.4em;
+}
+a.no-decoration:hover {
+    text-decoration: none !important;
 }

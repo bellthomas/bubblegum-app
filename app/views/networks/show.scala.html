@@ -2,7 +2,7 @@
 @import java.text.SimpleDateFormat
 @import io.hbt.bubblegum.core.databasing.Post
 
-@(name : State.NetworkDescription, size : Int, myInformation : String, bootstrapForm: Form[BootstrapKeyForm], posts: java.util.List[Post])(implicit request: MessagesRequestHeader)
+@(name : State.NetworkDescription, size : Int, myInformation : String, bootstrapForm: Form[BootstrapKeyForm])(implicit request: MessagesRequestHeader)
 
 @main("Network '"+ name.getName +"' - Bubblegum") {
     <div id="header-colour">
@@ -35,12 +35,16 @@
             </ul>
             <div class="toolbar float-right column col-6 col-sm-12">
                 <span><a href="#" id="open-modal-menu"><i class="icon icon-apps" style="color:#66758c;"></i></a></span>
-                <span style="color: #66758c;padding-right: 20px;padding-left: 10px;margin-top: 1px;"> / </span>
-                <span>
-                    <label class="form-switch">
-                        <input type="checkbox"><i class="form-icon"></i> Auto Refresh
-                    </label>
-                </span>
+                @if(size > 0) {
+                    <span style="color: #66758c;padding-right: 20px;padding-left: 20px;margin-top: 1px;"> / </span>
+                    <span><a href="#" id="refresh-button"><i class="icon icon-refresh" style="color:#66758c;"></i></a></span>
+                    <span style="color: #66758c;padding-right: 20px;padding-left: 10px;margin-top: 1px;"> / </span>
+                    <span>
+                        <label class="form-switch">
+                            <input type="checkbox"><i class="form-icon"></i> Auto Refresh
+                        </label>
+                    </span>
+                }
             </div>
         </div>
     </div>
@@ -99,13 +103,9 @@
         </div>
 
     } else {
-        <div class="container grid-lg">
-            @*Feed*@
-            @if(posts != null) {
-                @for(p <- posts) {
-                   <p>@{new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(new java.util.Date(p.getTimeCreated))} : @p.getContent</p>
-                }
-            }
+        <div class="container grid-md">
+            <h4 id="posts-loading" class="text-center">Loading...</h4>
+            <div id="posts" class="timeline"></div>
         </div>
     }
 
@@ -167,6 +167,11 @@
         var timeAtLastReload = 0;
 
         document.addEventListener("DOMContentLoaded", function() {
+
+            window.setInterval(function(){
+                reload();
+            }, 2000);
+
             var modals = ["menu"];
             @if(size > 0) {
                 modals.push("newpost");
@@ -186,7 +191,12 @@
             if(gettingPosts) {
                 var reloadTime = Date.now();
                 getEpoch(parseInt(reloadTime / epochDuration));
+                document.getElementById("posts-loading").hidden = true;
                 timeAtLastReload = reloadTime;
+
+                document.getElementById("refresh-button").onclick = function() {
+                    reload();
+                };
             }
         });
 
@@ -197,22 +207,22 @@
                 var headAtLastReload = parseInt(timeAtLastReload / epochDuration)
 
                 if(newHead == headAtLastReload) {
-                    getEpoch(newHead);
+                    getEpoch(newHead, timeAtLastReload);
                     timeAtLastReload = refreshTime;
                 } else if (newHead == (headAtLastReload + 1)) {
                     getEpoch(newHead);
-                    getEpoch(headAtLastReload);
+                    getEpoch(headAtLastReload, timeAtLastReload);
                     timeAtLastReload = refreshTime;
                 } else {
                     // Clear board and reload fresh
                     location.reload();
                 }
 
-                console.log("Reloaded: new time is " + timeAtLastReload);
+                // console.log("Reloaded: new time is " + timeAtLastReload);
             }
         }
 
-        function getEpoch(num) {
+        function getEpoch(num, from=0) {
             var ajaxForm = document.getElementById("ajaxForm");
             var token;
             for (var i = 0; i < ajaxForm.childNodes.length; i++) {
@@ -229,12 +239,16 @@
                 xhr.setRequestHeader('X-CSRF-Token', token);
                 xhr.onload = function() {
                     if (xhr.status === 200) {
-                        console.log("Response: " + xhr.responseText)
+                        // console.log("Response: " + xhr.responseText)
                         if(xhr.responseText.length > 0) {
                             try {
-                                var result = JSON.parse(xhr.responseText);
-                                console.log(result);
                                 epochsLoaded.add(num);
+                                var result = JSON.parse(xhr.responseText);
+                                if('data' in result) {
+                                    result["data"].forEach(function (p) {
+                                        insertPost(p);
+                                    });
+                                }
                             } catch(e) {
                                 console.log(e);
                             }
@@ -244,9 +258,62 @@
                         console.log('Request failed.  Returned status of ' + xhr.status + ": " + xhr.responseText);
                     }
                 };
-                console.log({ "epoch": num, "fromTime": timeAtLastReload });
-                xhr.send(JSON.stringify({ "epoch": num, "fromTime": timeAtLastReload }));
+                // console.log({ "epoch": num, "fromTime": from });
+                xhr.send(JSON.stringify({ "epoch": num, "fromTime": from }));
             }
+
+            function insertPost(p) {
+
+                var newDOMNode = postToHTML(p);
+                document.getElementById("posts").appendChild(newDOMNode);
+
+                // var para = document.createElement("p");
+                // var node = document.createTextNode("This is new.");
+                // para.appendChild(node);
+                //
+                // var element = document.getElementById("div1");
+                // var child = document.getElementById("p1");
+                // element.insertBefore(para, child);
+            }
+
+            function simpleSanitise(str) {
+                return str.replace("<", "&lt;").replace(">", "&gt;");
+            }
+
+            function postToHTML(p) {
+                var entity = document.createElement("div");
+                entity.setAttribute("class", "timeline-item");
+                entity.dataset.time = p["time"];
+                entity.dataset.owner = simpleSanitise(p["owner"]);
+                entity.dataset.id = simpleSanitise(p["id"]);
+
+                var inner = '<div class="timeline-left">' +
+                                '<a class="timeline-icon tooltip" data-tooltip="March 2016"></a>' +
+                            '</div>';
+                inner += '<div class="timeline-content">' +
+                            '<div class="post-tile tile">' +
+                                '<div class="tile-content">' +
+                                    '<h5 class="post-headline">'+ simpleSanitise(p["owner"]) +'</h5>' +
+                                    '<kbd class="reply-badge">COMMENT</kbd>' +
+                                    '<a class="no-decoration" href="#"><samp>Original Post →</samp></a>' +
+                                    '<p class="post-content hide">'+ simpleSanitise(p["content"]).split("\n").join("<br>") +'</p>' +
+                                '</div>' +
+                                '<div class="tile-action">' +
+                                    '<button class="btn btn-sm btn-primary">Thread</button>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+
+                entity.innerHTML = inner;
+                return entity;
+            }
+
+            // Gets a width of an element in em units
+            // window.innerWidth / parseFloat(
+            //         getComputedStyle(
+            //                 document.querySelector('body')
+            //         )['font-size']
+            // )
         }
     </script>
 }
