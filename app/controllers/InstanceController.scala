@@ -32,12 +32,12 @@ class InstanceController @Inject()(cc: MessagesControllerComponents) extends Mes
 
    def createForm = Action { implicit request: MessagesRequest[AnyContent] =>
       // Pass an unpopulated form to the template
-      Ok(views.html.networks.create(NewNetworkForm.form, routes.InstanceController.createSubmit()))
+      Ok(views.html.networks.create(NewNetworkForm.form, routes.InstanceController.createSubmit(), "Create"))
    }
 
    def createSubmit = Action { implicit request: MessagesRequest[AnyContent] =>
       val errorFunction = { formWithErrors: Form[NewNetworkForm] =>
-         BadRequest(views.html.networks.create(formWithErrors, routes.InstanceController.createSubmit()))
+         BadRequest(views.html.networks.create(formWithErrors, routes.InstanceController.createSubmit(), "Create"))
       }
 
       val successFunction = { data: NewNetworkForm =>
@@ -63,18 +63,18 @@ class InstanceController @Inject()(cc: MessagesControllerComponents) extends Mes
       }
       else {
          val form = NewNetworkForm.form.fill(NewNetworkForm(networkDescription.getName, networkDescription.getDisplayName))
-         Ok(views.html.networks.create(form, routes.InstanceController.editSubmit(id)))
+         Ok(views.html.networks.create(form, routes.InstanceController.editSubmit(id), "Edit"))
       }
    }
 
    def editSubmit(id : String) = Action { implicit request: MessagesRequest[AnyContent] =>
       val errorFunction = { formWithErrors: Form[NewNetworkForm] =>
-         BadRequest(views.html.networks.create(formWithErrors, routes.InstanceController.editSubmit(id)))
+         BadRequest(views.html.networks.create(formWithErrors, routes.InstanceController.editSubmit(id), "Edit"))
       }
 
       val successFunction = { data: NewNetworkForm =>
          if(State.updateNetworkDescription(id, data.name, data.display) != null) {
-            Redirect(routes.InstanceController.index()).flashing("info" -> "Network details amended.")
+            Redirect(routes.NetworkController.show(id)).flashing("info" -> "Network details amended.")
          }
          else {
             Redirect(routes.InstanceController.index()).flashing("error" -> "Failed to update network.")

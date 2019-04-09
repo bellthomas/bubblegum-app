@@ -60,6 +60,7 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
                   val key = parts(2);
                   val node = State.bubblegum.getNode(networkDescription.getID)
                   if (node.bootstrap(ip, port, key)) {
+                     print("Successful bootstrap - new network: " + node.getNetworkIdentifier)
                      Redirect(routes.NetworkController.show(id)).flashing("info" -> "Network Bootstrapped!")
                   }
                   else {
@@ -136,8 +137,12 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
                val entities = mutable.ListBuffer[JsValue]()
                for(post <- posts) {
                   if(post.getTimeCreated > user.fromTime) {
+                     var ownerDisplay = State.getMeta(post.getNetwork + ":" + post.getOwner, "username")
+                     ownerDisplay = if(ownerDisplay == null) post.getOwner else ownerDisplay
+
                      entities += Json.obj(
-                        "owner" -> post.getOwner,
+                        "owner" -> ownerDisplay,
+                        "ownerHash" -> post.getOwner,
                         "content" -> post.getContent,
                         "id" -> post.getID,
                         "time" -> post.getTimeCreated,
@@ -153,6 +158,10 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
             }
          }
       )
+   }
+
+   def showThread(hash : String, pid : String) = Action { implicit request: MessagesRequest[AnyContent] =>
+      Ok("hi")
    }
 
 }

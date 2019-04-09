@@ -12,6 +12,7 @@ POST    /:id/bootstrap              controllers.NetworkController.bootstrapSubmi
 GET     /:id/edit                   controllers.InstanceController.editForm(id)
 POST    /:id/edit                   controllers.InstanceController.editSubmit(id)
 POST    /:id/post                   controllers.NetworkController.newPost(id)
+GET     /:id/thread/:pid            controllers.NetworkController.showThread(id, pid)
 POST    /:id/ajax/getEpoch          controllers.NetworkController.getEpoch(id)
 
 

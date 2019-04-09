@@ -1,9 +1,9 @@
 @import controllers._
 @import auxiliary._
-@(form: Form[NewNetworkForm], postUrl: Call)(implicit request: MessagesRequestHeader)
+@(form: Form[NewNetworkForm], postUrl: Call, label: String)(implicit request: MessagesRequestHeader)
 
 
-@main("Create Network - Bubblegum") {
+@main(label + " Network") {
 
     <!-- Header -->
     <div id="header-colour">
@@ -27,7 +27,7 @@
                 <a href="@routes.InstanceController.index()">Networks</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="#">Create Network</a>
+                <a href="#">@label Network</a>
             </li>
         </ul>
     </div>
@@ -69,7 +69,7 @@
             }
 
             <div class="float-right">
-                <button class="btn btn-primary">Create Network</button>
+                <button class="btn btn-primary">@label Network</button>
             </div>
         }
     </div>

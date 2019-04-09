@@ -1,6 +1,5 @@
 package controllers;
 
-import com.google.common.graph.Network;
 import io.hbt.bubblegum.core.Bubblegum;
 import io.hbt.bubblegum.core.Configuration;
 import io.hbt.bubblegum.core.auxiliary.NetworkingHelper;
@@ -13,15 +12,13 @@ import java.awt.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class State {
     static {
@@ -39,7 +36,7 @@ public class State {
             this.id = id;
             this.hash = hash;
             this.colour = colour;
-            this.displayName = displayName;
+            this.setDisplayName(displayName);
         }
         public String getName() { return this.name; }
         public String getID() { return this.id; }
@@ -47,7 +44,10 @@ public class State {
         public String getColour() { return this.colour; }
         public String getDisplayName() { return this.displayName; }
         private void setName(String name) { this.name = name; }
-        private void setDisplayName(String displayName) { this.displayName = displayName; }
+        private void setDisplayName(String displayName) {
+            this.displayName = displayName;
+            bubblegum.getNode(this.getID()).updateMeta("username", displayName);
+        }
     }
 
 
@@ -104,10 +104,18 @@ public class State {
         return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
     }
 
+    public static String hashToNodeID(String hash) {
+        NetworkDescription nd = getNetworkDescription(hash);
+        if(nd == null) return "";
+        else return bubblegum.getNode(nd.getID()).getNodeIdentifier().toString();
+    }
+
 
     // Posts cache, index is postID
     private static HashMap<String, HashMap<Long, TreeSet<String>>> index = new HashMap<>();
     private static HashMap<String, HashMap<String, Post>> cache = new HashMap<>();
+    private static HashMap<String, HashMap<String, String>> metaCache = new HashMap<>();
+    private static List<String> globalMetaKeys = Stream.of("username").collect(Collectors.toList());
 
     static List<Post> getFeed(String hash, int numEpochs) {
         NetworkDescription nd = getNetworkDescription(hash);
@@ -152,13 +160,34 @@ public class State {
                             NodeID nid = new NodeID(idParts[0]);
                             List<Post> posts = node.query(nid, -1, -1, new ArrayList<>() {{
                                 add(idParts[1]);
+                                for(String key : globalMetaKeys) {
+//                                    if(!haveMeta(idParts[0], key)) {
+                                        add("_"+key+"_"+idParts[0]);
+//                                        System.out.println("Asking for "+"_"+key+"_"+idParts[0]);
+//                                    }
+                                }
                             }});
                             if (posts != null && posts.size() > 0) {
+                                String prefixedOwner;
+                                String[] metaKeyParts;
                                 for (Post p : posts) {
-                                    nodeCache.put(p.getOwner() + ":" + p.getID(), p);
-                                    if(!nodeIndex.containsKey(epoch)) nodeIndex.put(epoch, new TreeSet<>());
-                                    nodeIndex.get(epoch).add(p.getOwner() + ":" + p.getID());
-                                    results.add(p);
+                                    if(p.getID().startsWith("_")) {
+                                        // meta value
+                                        metaKeyParts = p.getID().split("_");
+                                        if(metaKeyParts.length == 3) {
+                                            prefixedOwner = node.getNetworkIdentifier() + ":" + p.getOwner();
+                                            if (!metaCache.containsKey(prefixedOwner))
+                                                metaCache.put(prefixedOwner, new HashMap<>());
+
+                                            metaCache.get(prefixedOwner).put(metaKeyParts[1], p.getContent());
+                                        }
+                                    }
+                                    else {
+                                        nodeCache.put(p.getOwner() + ":" + p.getID(), p);
+                                        if (!nodeIndex.containsKey(epoch)) nodeIndex.put(epoch, new TreeSet<>());
+                                        nodeIndex.get(epoch).add(p.getOwner() + ":" + p.getID());
+                                        results.add(p);
+                                    }
                                 }
                             }
                         } catch (MalformedKeyException e) {
@@ -171,6 +200,16 @@ public class State {
 
         Collections.sort(results, (a, b) -> -1 * (int)(a.getTimeCreated() - b.getTimeCreated()));
         return results;
+    }
+
+    static boolean haveMeta(String owner, String key) {
+        if(metaCache.containsKey(owner) && metaCache.get(owner).containsKey(key)) return true;
+        return false;
+    }
+
+    static String getMeta(String owner, String key) {
+        if(metaCache.containsKey(owner)) return metaCache.get(owner).get(key);
+        else return null;
     }
 
     private static void cacheUpkeep(String hash) {

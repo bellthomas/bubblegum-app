@@ -4,7 +4,7 @@
 
 @(name : State.NetworkDescription, size : Int, myInformation : String, bootstrapForm: Form[BootstrapKeyForm])(implicit request: MessagesRequestHeader)
 
-@main("Network '"+ name.getName +"' - Bubblegum") {
+@main("Network '"+ name.getName +"'") {
     <div id="header-colour">
         <div class="container grid-lg">
             <header class="navbar" style="padding:8px 0;">
@@ -105,7 +105,9 @@
     } else {
         <div class="container grid-md">
             <h4 id="posts-loading" class="text-center">Loading...</h4>
+            <h4 id="posts-empty" class="text-center" style="padding: 30px 0;" hidden>No Recent Posts</h4>
             <div id="posts" class="timeline"></div>
+            <button id="load-more" class="btn btn-link" onclick="showAnOlderEpoch()" style="margin: 0 auto; display: block;">Check for Older Posts</button>
         </div>
     }
 
@@ -118,10 +120,35 @@
                 <div class="modal-title h5">Network Settings</div>
             </div>
             <div class="modal-body">
-
+                <div class="container grid-lg">
+                    <div class="columns" style="padding: 20px 0;">
+                        <div class="column col-3 col-sm-12">
+                            <h6 style="margin-top: 12px;color: #717171;font-weight: 300;text-align: right;">Username</h6>
+                        </div>
+                        <div class="column col-8 col-sm-11">
+                            <h3>@name.getDisplayName</h3>
+                        </div>
+                        <div class="column col-1 col-sm-1" style="margin-top: 10px;">
+                            <a href="@routes.InstanceController.editForm(name.getHash)"><i class="icon icon-edit"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="container grid-lg">
+                    <div class="columns">
+                        <div class="panel column col-12">
+                            <div class="panel-header">
+                                <div class="panel-title"><strong>Invite Friends to Join</strong></div>
+                            </div>
+                            <div class="panel-body">
+                                <p>Share this network's public information key to allow others to connect with you.</p>
+                                <div class="key-wrapper"><pre>@myInformation</pre></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-
+                <p></p>
             </div>
         </div>
     </div>
@@ -161,9 +188,12 @@
         // State
         var gettingPosts = @(size > 0);
         var epochDuration = @io.hbt.bubblegum.core.Configuration.BIN_EPOCH_DURATION;
+        var threadLink = '@routes.NetworkController.showThread(name.getHash, "$")';
 
-        var posts = {};
+        var posts = new Set();
         var epochsLoaded = new Set();
+        var smallestEpochShowing = 0;
+        var biggestEpochShowing = 0;
         var timeAtLastReload = 0;
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -190,9 +220,13 @@
 
             if(gettingPosts) {
                 var reloadTime = Date.now();
-                getEpoch(parseInt(reloadTime / epochDuration));
-                document.getElementById("posts-loading").hidden = true;
+                smallestEpochShowing = parseInt(reloadTime / epochDuration);
+                biggestEpochShowing = smallestEpochShowing;
+                getEpoch(smallestEpochShowing);
                 timeAtLastReload = reloadTime;
+
+                document.getElementById("posts-loading").hidden = true;
+                if(posts.size == 0) document.getElementById("posts-empty").hidden = false;
 
                 document.getElementById("refresh-button").onclick = function() {
                     reload();
@@ -220,6 +254,15 @@
 
                 // console.log("Reloaded: new time is " + timeAtLastReload);
             }
+        }
+
+        function showAnOlderEpoch() {
+            document.getElementById("load-more").classList.add("loading");
+            getEpoch(smallestEpochShowing - 1);
+            smallestEpochShowing = smallestEpochShowing - 1;
+            setTimeout(function () {
+                document.getElementById("load-more").classList.remove("loading");
+            }, 500);
         }
 
         function getEpoch(num, from=0) {
@@ -261,60 +304,109 @@
                 // console.log({ "epoch": num, "fromTime": from });
                 xhr.send(JSON.stringify({ "epoch": num, "fromTime": from }));
             }
-
-            function insertPost(p) {
-
-                var newDOMNode = postToHTML(p);
-                document.getElementById("posts").appendChild(newDOMNode);
-
-                // var para = document.createElement("p");
-                // var node = document.createTextNode("This is new.");
-                // para.appendChild(node);
-                //
-                // var element = document.getElementById("div1");
-                // var child = document.getElementById("p1");
-                // element.insertBefore(para, child);
-            }
-
-            function simpleSanitise(str) {
-                return str.replace("<", "&lt;").replace(">", "&gt;");
-            }
-
-            function postToHTML(p) {
-                var entity = document.createElement("div");
-                entity.setAttribute("class", "timeline-item");
-                entity.dataset.time = p["time"];
-                entity.dataset.owner = simpleSanitise(p["owner"]);
-                entity.dataset.id = simpleSanitise(p["id"]);
-
-                var inner = '<div class="timeline-left">' +
-                                '<a class="timeline-icon tooltip" data-tooltip="March 2016"></a>' +
-                            '</div>';
-                inner += '<div class="timeline-content">' +
-                            '<div class="post-tile tile">' +
-                                '<div class="tile-content">' +
-                                    '<h5 class="post-headline">'+ simpleSanitise(p["owner"]) +'</h5>' +
-                                    '<kbd class="reply-badge">COMMENT</kbd>' +
-                                    '<a class="no-decoration" href="#"><samp>Original Post →</samp></a>' +
-                                    '<p class="post-content hide">'+ simpleSanitise(p["content"]).split("\n").join("<br>") +'</p>' +
-                                '</div>' +
-                                '<div class="tile-action">' +
-                                    '<button class="btn btn-sm btn-primary">Thread</button>' +
-                                '</div>' +
-                            '</div>' +
-                        '</div>';
-
-                entity.innerHTML = inner;
-                return entity;
-            }
-
-            // Gets a width of an element in em units
-            // window.innerWidth / parseFloat(
-            //         getComputedStyle(
-            //                 document.querySelector('body')
-            //         )['font-size']
-            // )
         }
+        function insertPost(p) {
+            if(posts.size == 0) document.getElementById("posts-empty").hidden = true;
+            posts.add(p);
+            var newDOMNode = postToHTML(p);
+            var closestBefore = Number.MAX_SAFE_INTEGER;
+            var closestID = "";
+            var temp;
+            posts.forEach(function(k) {
+                if('time' in k) {
+                    temp = p["time"] - k["time"];
+                    if(temp > 0 && temp < closestBefore) {
+                        closestBefore = temp;
+                        closestID = k["id"];
+                    }
+                }
+            });
+
+            if(closestID.length > 0) {
+                var closestDOMNode = document.getElementById(closestID);
+                if(closestDOMNode) {
+                    document.getElementById("posts").insertBefore(newDOMNode, closestDOMNode);
+                }
+                else {
+                    document.getElementById("posts").append(newDOMNode);
+                }
+            }
+            else {
+                document.getElementById("posts").append(newDOMNode);
+            }
+
+            if(getEmHeight("content-"+p["id"]) > 11) {
+                var showMore = document.createElement("button");
+                showMore.classList.add("btn", "btn-link");
+                showMore.textContent = "More...";
+                showMore.style.padding = 0;
+                showMore.onclick = function() {
+                    document.getElementById("content-"+p["id"]).classList.remove("hide");
+                    this.remove();
+                };
+                var referenceNode = document.getElementById("content-"+p["id"]);
+                referenceNode.parentNode.insertBefore(showMore, referenceNode.nextSibling);
+            }
+        }
+
+        function simpleSanitise(str) {
+            return str.replace("<", "&lt;").replace(">", "&gt;");
+        }
+
+        function postToHTML(p) {
+            var entity = document.createElement("div");
+            entity.setAttribute("class", "timeline-item");
+            entity.dataset.time = p["time"];
+            entity.dataset.owner = simpleSanitise(p["owner"]);
+            entity.setAttribute("id", simpleSanitise(p["id"]));
+            var date = new Date(p["time"]);
+            var dateString = date.toLocaleTimeString();// +', '+ date.toLocaleDateString();
+            if(parseInt(date.getTime() / 86400000) != parseInt(Date.now() / 86400000)) {
+                dateString += ', '+ date.toLocaleDateString();
+            }
+            var ownerHash = "User #" + p["ownerHash"].substring(0,8);
+            var selfID = "@State.hashToNodeID(name.getHash)";
+            if(selfID == p["ownerHash"].valueOf()) {
+                ownerHash = "You";
+            }
+
+            var inner = '<div class="timeline-left">' +
+                            '<a class="timeline-icon"></a>' +
+                        '</div>';
+            inner += '<div class="timeline-content">' +
+                        '<div class="post-tile tile">' +
+                            '<div class="tile-content">' +
+                                '<h5 class="post-headline">'+ simpleSanitise(p["owner"]) +'</h5>' +
+                                '<mark style="padding: 1px 5px;">'+ dateString +'</mark>';
+
+            if('response' in p && p["response"].length > 0) {
+                inner += '<kbd class="reply-badge">COMMENT</kbd>' +
+                        '<a class="no-decoration" href="'+threadLink.replace('$',p['response'])+'"><samp>Original Post →</samp></a>';
+            }
+
+            inner +=            '<p id="content-'+simpleSanitise(p["id"])+'" class="post-content hide">'+ simpleSanitise(p["content"]).split("\n").join("<br>") +'</p>' +
+                            '</div>' +
+                            '<div class="tile-action">' +
+                                '<a class="float-right" href="'+threadLink.replace('$',p['id'])+'"><button class="btn btn-sm btn-primary">Thread</button></a>' +
+                                '<a class="float-right" style="margin-right:8px;" href="'+threadLink.replace('$',p['id'])+'"><button class="btn btn-sm">Reply</button></a><br>' +
+                                '<code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-color: #d73e48;border-width: 1px;border-style: double;">'+ ownerHash +'</code>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+
+            entity.innerHTML = inner;
+            return entity;
+        }
+
+
+        function getEmHeight(id) {
+            return document.getElementById(id).clientHeight / parseFloat(
+                getComputedStyle(document.querySelector('body'))['font-size']
+            )
+        }
+        // Gets a width of an element in em units
+        // document.getElementById("asdf").clientHeight / parseFloat(getComputedStyle(document.querySelector('body'))['font-size'])
+
     </script>
 }
 
