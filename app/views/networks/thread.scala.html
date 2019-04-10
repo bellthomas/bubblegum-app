@@ -1,0 +1,105 @@
+@import io.hbt.bubblegum.core.databasing.Post
+@import controllers.State.NetworkDescription
+
+@(post : Post, ownerName : String, network : NetworkDescription)(implicit request: MessagesRequestHeader)
+
+@main("Post Thread") {
+    <div id="header-colour">
+        <div class="container grid-lg">
+            <header class="navbar" style="padding:8px 0;">
+
+                <section class="navbar-section">
+                    <a href="@routes.NetworkController.show(network.getHash)" class="btn btn-link btn-white"><i class="icon icon-arrow-left"></i></a>
+                </section>
+                <section class="navbar-center">
+                    <img style="max-height:38px;" src="@routes.Assets.versioned("images/logo-256.png")" />
+                </section>
+                <section class="navbar-section">
+                </section>
+            </header>
+        </div>
+    </div>
+    <div id="breadcrumbs" class="container grid-lg">
+        <div class="columns">
+            <ul class="breadcrumb column col-6 col-sm-12">
+                <li class="breadcrumb-item">
+                    <a href="@routes.InstanceController.index()">Networks</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="@routes.NetworkController.show(network.getHash)">@network.getName</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Thread</a>
+                </li>
+            </ul>
+@*            <div class="toolbar float-right column col-6 col-sm-12">*@
+@*                <span><a href="#" id="open-modal-menu"><i class="icon icon-apps" style="color:#66758c;"></i></a></span>*@
+@*            </div>*@
+        </div>
+    </div>
+
+    @toast(request)
+
+
+    <div class="container grid-md">
+        <div id="posts" class="timeline">
+            <div class="timeline-item" data-time="@post.getTimeCreated" data-owner="b" id="@post.getID">
+                <div class="timeline-left"><a class="timeline-icon"></a></div>
+                <div class="timeline-content">
+                    <div class="post-tile tile">
+                        <div class="tile-content">
+                            <div class="tile-action">
+                                <a class="float-right" href="#">
+                                    <button class="btn btn-sm">Reply</button>
+                                </a>
+                                <br>
+                                <code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-color: #d73e48;border-width: 1px;border-style: double;">You</code>
+                            </div>
+                            <h5 class="post-headline">@ownerName</h5>
+                            <mark id="main-post-time" style="padding: 1px 5px;"></mark>
+                            <script>
+                                var date = new Date(@post.getTimeCreated);
+                                var dateString = date.toLocaleTimeString();
+                                if(parseInt(date.getTime() / 86400000) != parseInt(Date.now() / 86400000)) {
+                                    dateString += ', '+ date.toLocaleDateString();
+                                }
+                                document.getElementById("main-post-time").innerText = dateString;
+                            </script>
+                            <p id="content-@post.getID" class="post-content hide">@Html(post.getContent.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>"))</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Sort out main post
+            checkForMoreButton("content-@post.getID");
+        });
+
+        function checkForMoreButton(id) {
+            if(getEmHeight(id) > 11) {
+                var showMore = document.createElement("button");
+                showMore.classList.add("btn", "btn-link");
+                showMore.textContent = "More...";
+                showMore.style.padding = 0;
+                showMore.onclick = function() {
+                    document.getElementById(id).classList.remove("hide");
+                    this.remove();
+                };
+                var referenceNode = document.getElementById(id);
+                referenceNode.parentNode.insertBefore(showMore, referenceNode.nextSibling);
+            }
+        }
+
+        function getEmHeight(id) {
+            return document.getElementById(id).clientHeight / parseFloat(
+                getComputedStyle(document.querySelector('body'))['font-size']
+            )
+        }
+
+
+    </script>
+}

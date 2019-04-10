@@ -170,3 +170,7 @@ a samp {
 a.no-decoration:hover {
     text-decoration: none !important;
 }
+.tile-action {
+    position: absolute;
+    right: 0;
+}

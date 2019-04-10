@@ -359,16 +359,20 @@
             entity.dataset.time = p["time"];
             entity.dataset.owner = simpleSanitise(p["owner"]);
             entity.setAttribute("id", simpleSanitise(p["id"]));
+
             var date = new Date(p["time"]);
             var dateString = date.toLocaleTimeString();// +', '+ date.toLocaleDateString();
             if(parseInt(date.getTime() / 86400000) != parseInt(Date.now() / 86400000)) {
                 dateString += ', '+ date.toLocaleDateString();
             }
+
             var ownerHash = "User #" + p["ownerHash"].substring(0,8);
             var selfID = "@State.hashToNodeID(name.getHash)";
             if(selfID == p["ownerHash"].valueOf()) {
                 ownerHash = "You";
             }
+
+            var threadURI = btoa(p["ownerHash"] + ":" + p["id"]);
 
             var inner = '<div class="timeline-left">' +
                             '<a class="timeline-icon"></a>' +
@@ -387,8 +391,8 @@
             inner +=            '<p id="content-'+simpleSanitise(p["id"])+'" class="post-content hide">'+ simpleSanitise(p["content"]).split("\n").join("<br>") +'</p>' +
                             '</div>' +
                             '<div class="tile-action">' +
-                                '<a class="float-right" href="'+threadLink.replace('$',p['id'])+'"><button class="btn btn-sm btn-primary">Thread</button></a>' +
-                                '<a class="float-right" style="margin-right:8px;" href="'+threadLink.replace('$',p['id'])+'"><button class="btn btn-sm">Reply</button></a><br>' +
+                                '<a class="float-right" href="'+threadLink.replace('$',threadURI)+'"><button class="btn btn-sm btn-primary">Thread</button></a>' +
+                                '<a class="float-right" style="margin-right:8px;" href="'+threadLink.replace('$',threadURI)+'"><button class="btn btn-sm">Reply</button></a><br>' +
                                 '<code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-color: #d73e48;border-width: 1px;border-style: double;">'+ ownerHash +'</code>' +
                             '</div>' +
                         '</div>' +

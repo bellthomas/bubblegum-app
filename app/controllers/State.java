@@ -1,7 +1,6 @@
 package controllers;
 
 import io.hbt.bubblegum.core.Bubblegum;
-import io.hbt.bubblegum.core.Configuration;
 import io.hbt.bubblegum.core.auxiliary.NetworkingHelper;
 import io.hbt.bubblegum.core.databasing.Post;
 import io.hbt.bubblegum.core.exceptions.MalformedKeyException;
@@ -117,35 +116,51 @@ public class State {
     private static HashMap<String, HashMap<String, String>> metaCache = new HashMap<>();
     private static List<String> globalMetaKeys = Stream.of("username").collect(Collectors.toList());
 
-    static List<Post> getFeed(String hash, int numEpochs) {
-        NetworkDescription nd = getNetworkDescription(hash);
-        if(nd == null) return null;
-        BubblegumNode node = bubblegum.getNode(nd.getID());
-        if(node == null) return null;
-
-        long currentEpoch = System.currentTimeMillis() / Configuration.BIN_EPOCH_DURATION;
-        long downTo = currentEpoch - numEpochs;
-
-        List<Post> found = new ArrayList<>();
-        long c = currentEpoch;
-        while(c > downTo) {
-            found.addAll(refreshEpoch(node, c));
-            c--;
+    static Post getCachedPost(String hash, String key) {
+        BubblegumNode node = getNodeForHash(hash);
+        if(node != null) {
+            if(cache.containsKey(node.getIdentifier())) {
+                return cache.get(node.getIdentifier()).get(key);
+            }
         }
-
-        Collections.sort(found, (a, b) -> -1 * (int)(a.getTimeCreated() - b.getTimeCreated()));
-        return found;
+        return null;
     }
 
     static List<Post> refreshEpoch(BubblegumNode node, long epoch) {
-        List<byte[]> idBytes = node.lookup(NodeID.hash(epoch));
+        List<Post> posts = resolveIndex(node, NodeID.hash(epoch));
+//        posts.forEach((p) -> {
+//            if (!nodeIndex.containsKey(epoch)) nodeIndex.put(epoch, new TreeSet<>());
+//            nodeIndex.get(epoch).add(p.getOwner() + ":" + p.getID());
+//        });
+        return posts;
+    }
+
+    static Post lookupPost(BubblegumNode node, String dest, String pid) {
+        if(node == null) return null;
+        try {
+            NodeID nid = new NodeID(dest);
+            List<Post> posts = node.query(nid, -1, -1, new ArrayList<>() {{ add(pid); }});
+            if(posts !=  null) {
+                for (Post p : posts) {
+                    if (p.getID().equals(pid)) return p;
+                }
+            }
+        } catch (MalformedKeyException e) {
+            // Best effort
+            return null;
+        }
+        return null;
+    }
+
+    static List<Post> resolveIndex(BubblegumNode node, NodeID indexNode) {
+        List<byte[]> idBytes = node.lookup(indexNode);
         List<Post> results = new ArrayList<>();
 
         if(!cache.containsKey(node.getIdentifier())) cache.put(node.getIdentifier(), new HashMap<>());
         HashMap<String, Post> nodeCache = cache.get(node.getIdentifier());
 
-        if(!index.containsKey(node.getIdentifier())) index.put(node.getIdentifier(), new HashMap<>());
-        HashMap<Long, TreeSet<String>> nodeIndex = index.get(node.getIdentifier());
+//        if(!index.containsKey(node.getIdentifier())) index.put(node.getIdentifier(), new HashMap<>());
+//        HashMap<Long, TreeSet<String>> nodeIndex = index.get(node.getIdentifier());
 
         if(idBytes != null) {
             List<String> ids = idBytes.stream().map((b) -> new String(b)).collect(Collectors.toList());
@@ -163,7 +178,6 @@ public class State {
                                 for(String key : globalMetaKeys) {
 //                                    if(!haveMeta(idParts[0], key)) {
                                         add("_"+key+"_"+idParts[0]);
-//                                        System.out.println("Asking for "+"_"+key+"_"+idParts[0]);
 //                                    }
                                 }
                             }});
@@ -184,8 +198,6 @@ public class State {
                                     }
                                     else {
                                         nodeCache.put(p.getOwner() + ":" + p.getID(), p);
-                                        if (!nodeIndex.containsKey(epoch)) nodeIndex.put(epoch, new TreeSet<>());
-                                        nodeIndex.get(epoch).add(p.getOwner() + ":" + p.getID());
                                         results.add(p);
                                     }
                                 }

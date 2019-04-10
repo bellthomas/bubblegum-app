@@ -1,17 +1,13 @@
 package controllers
 
 import java.net.{InetAddress, UnknownHostException}
-import java.security.MessageDigest
 import java.util.Base64
-import java.util.stream.Collectors
 
+import auxiliary._
 import javax.inject._
 import play.api.data.Form
-import play.api.mvc._
-import auxiliary._
-import io.hbt.bubblegum.core.databasing.Post
-import org.apache.commons.text.StringEscapeUtils
 import play.api.libs.json._
+import play.api.mvc._
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -161,7 +157,30 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
    }
 
    def showThread(hash : String, pid : String) = Action { implicit request: MessagesRequest[AnyContent] =>
-      Ok("hi")
+      val plainPostID : String = new String(Base64.getDecoder.decode(pid.getBytes()))
+      val plainPostIDParts = plainPostID.split(":")
+      if(plainPostIDParts.length == 2) {
+         var post = State.getCachedPost(hash, plainPostID);
+         if(post == null) {
+            // Try fresh retrieval
+            post = State.lookupPost(State.getNodeForHash(hash), plainPostIDParts(0), plainPostIDParts(1));
+         }
+
+         if(post != null) {
+            val nd = State.getNetworkDescription(hash)
+            var ownerName = State.getMeta(post.getNetwork + ":" + post.getOwner, "username")
+            if(ownerName == null) ownerName = post.getOwner
+            if(nd != null) {
+               Ok(views.html.networks.thread(post, ownerName, State.getNetworkDescription(hash)))
+            } else {
+               Redirect(routes.NetworkController.show(hash)).flashing("error" -> "Couldn't find that post")
+            }
+         } else {
+            Redirect(routes.NetworkController.show(hash)).flashing("error" -> "Couldn't find that post")
+         }
+      } else {
+         Redirect(routes.NetworkController.show(hash)).flashing("error" -> "Couldn't find that post")
+      }
    }
 
 }
