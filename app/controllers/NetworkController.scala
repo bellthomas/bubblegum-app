@@ -56,7 +56,6 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
                   val key = parts(2);
                   val node = State.bubblegum.getNode(networkDescription.getID)
                   if (node.bootstrap(ip, port, key)) {
-                     print("Successful bootstrap - new network: " + node.getNetworkIdentifier)
                      Redirect(routes.NetworkController.show(id)).flashing("info" -> "Network Bootstrapped!")
                   }
                   else {
@@ -98,10 +97,7 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
          if(networkDescription != null) {
             val node = State.bubblegum.getNode(networkDescription.getID)
             if(node != null) {
-               printf("raw: " + data.content)
                val safe = data.content.replace("<", "&lt;").replace(">", "&gt;")
-               printf("safe:" + safe)
-
                val post = if(data.response.length > 0) node.saveResponse(safe, data.response) else node.savePost(safe)
                val redirect = if(data.thread && data.response.length > 0) {
                   routes.NetworkController.showThread(id, new String(Base64.getEncoder.encode(data.response.getBytes)))

@@ -383,10 +383,11 @@
                 dateString += ', '+ date.toLocaleDateString();
             }
 
-            var ownerHash = "User #" + p["ownerHash"].substring(0,8);
+            var ownerHash = '<code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-color: #d73e48;border-width: 1px;border-style: double;">User #' + p["ownerHash"].substring(0,8) + '</code>';
+
             var selfID = "@State.hashToNodeID(name.getHash)";
             if(selfID == p["ownerHash"].valueOf()) {
-                ownerHash = "You";
+                ownerHash = '<code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-width: 1px;border-style: double;background-color: #eafce5;border-color: #306b21;color:#306b21;">You</code>';
             }
 
             var threadURI = btoa(p["ownerHash"] + ":" + p["id"]);
@@ -411,7 +412,7 @@
                             '<div class="tile-action">' +
                                 '<a class="float-right" href="'+threadLink.replace('$',threadURI)+'"><button class="btn btn-sm btn-primary">Thread</button></a>' +
                                 '<a class="float-right" style="margin-right:8px;" href="#" onclick="showReplyForm(\''+ simpleSanitise(p["ownerHash"] + ":" + p["id"]) +'\', \'' + p["owner"] + '\')"><button class="btn btn-sm">Reply</button></a><br>' +
-                                '<code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-color: #d73e48;border-width: 1px;border-style: double;">'+ ownerHash +'</code>' +
+                                ownerHash +
                             '</div>' +
                         '</div>' +
                     '</div>';

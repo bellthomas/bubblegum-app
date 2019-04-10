@@ -1,0 +1,5 @@
+#!/bin/bash
+KEY=$2
+echo "Resetting instance..."
+ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$1 'docker kill $(docker ps -q)'
+echo "Done."
