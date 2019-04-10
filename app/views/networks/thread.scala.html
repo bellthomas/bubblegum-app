@@ -1,7 +1,8 @@
 @import io.hbt.bubblegum.core.databasing.Post
 @import controllers.State.NetworkDescription
+@import auxiliary._
 
-@(post : Post, ownerName : String, network : NetworkDescription)(implicit request: MessagesRequestHeader)
+@(post : Post, ownerName : String, network : NetworkDescription, postForm: Form[PostForm])(implicit request: MessagesRequestHeader)
 
 @main("Post Thread") {
     <div id="header-colour">
@@ -42,21 +43,21 @@
 
 
     <div class="container grid-md">
-        <div id="posts" class="timeline">
+        <div id="posts" class="timeline" data-depth="0">
             <div class="timeline-item" data-time="@post.getTimeCreated" data-owner="b" id="@post.getID">
                 <div class="timeline-left"><a class="timeline-icon"></a></div>
                 <div class="timeline-content">
                     <div class="post-tile tile">
                         <div class="tile-content">
                             <div class="tile-action">
-                                <a class="float-right" href="#">
+                                <a class="float-right" onclick="showReplyForm('@{post.getOwner}:@{post.getID}', '@ownerName')" href="#">
                                     <button class="btn btn-sm">Reply</button>
                                 </a>
                                 <br>
                                 <code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-color: #d73e48;border-width: 1px;border-style: double;">You</code>
                             </div>
                             <h5 class="post-headline">@ownerName</h5>
-                            <mark id="main-post-time" style="padding: 1px 5px;"></mark>
+                            <kbd id="main-post-time" class="date-badge"></kbd>
                             <script>
                                 var date = new Date(@post.getTimeCreated);
                                 var dateString = date.toLocaleTimeString();
@@ -68,8 +69,63 @@
                             <p id="content-@post.getID" class="post-content hide">@Html(post.getContent.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>"))</p>
                         </div>
                     </div>
+                    <div class="divider text-center" data-content="Comments"></div>
+                    <div id="posts" class="timeline" data-depth="1">
+                        <div class="timeline-item" data-time="@post.getTimeCreated" data-owner="b" id="@post.getID">
+                            <div class="timeline-left"><a class="timeline-icon"></a></div>
+                            <div class="timeline-content">
+                                <div class="post-tile tile">
+                                    <div class="tile-content">
+                                        <div class="tile-action">
+                                            <a class="float-right" onclick="showReplyForm('@{post.getOwner}:@{post.getID}', '@ownerName')" href="#">
+                                                <button class="btn btn-sm">Reply</button>
+                                            </a>
+                                            <br>
+                                            <code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-color: #d73e48;border-width: 1px;border-style: double;">You</code>
+                                        </div>
+                                        <h5 class="post-headline">@ownerName</h5>
+                                        <kbd id="main-post-time" class="date-badge"></kbd>
+                                        <script>
+                                            var date = new Date(@post.getTimeCreated);
+                                            var dateString = date.toLocaleTimeString();
+                                            if(parseInt(date.getTime() / 86400000) != parseInt(Date.now() / 86400000)) {
+                                                dateString += ', '+ date.toLocaleDateString();
+                                            }
+                                            document.getElementById("main-post-time").innerText = dateString;
+                                        </script>
+                                        <p id="content-@post.getID" class="post-content hide">@Html(post.getContent.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>"))</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-newpost">
+        <a href="#" id="bg-modal-newpost" class="modal-overlay" aria-label="Close"></a>
+        <div class="modal-container">
+            <div class="modal-header">
+                <a href="#" id="close-modal-newpost" class="btn btn-clear float-right" aria-label="Close"></a>
+                <div id="newpost-modal-title" class="modal-title h5">New Response</div>
+            </div>
+            @helper.form(routes.NetworkController.newPost(network.getHash)) {
+                @helper.CSRF.formField
+
+                <div class="modal-body">
+                    <div class="content">
+                        <span id="newpost-byline" style="margin-bottom: 15px;"></span>
+                        <textarea class="form-input" rows="5" value="" name="content" id="newpost-textarea" placeholder="eg. I wandered lonely as a cloud..."></textarea>
+                        <input id="newpost-hidden-response" type="hidden" name="response" value="" />
+                        <input type="hidden" name="thread" value="true" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary float-right" style="margin-bottom: 15px;">Post</button>
+                </div>
+            }
         </div>
     </div>
 
@@ -77,6 +133,22 @@
         document.addEventListener("DOMContentLoaded", function() {
             // Sort out main post
             checkForMoreButton("content-@post.getID");
+            new SimpleMDE({ element: document.getElementById("newpost-textarea") });
+
+            var modals = ["newpost"];
+            modals.forEach(function(modal) {
+                document.getElementById("open-modal-"+modal).onclick = function(){
+                    document.getElementById("modal-"+modal).classList.add("active");
+                }
+                document.getElementById("close-modal-"+modal).onclick = function(){
+                    document.getElementById("modal-"+modal).classList.remove("active");
+                    if(modal == "newpost") resetNewPostForm();
+                }
+                document.getElementById("bg-modal-"+modal).onclick = function(){
+                    document.getElementById("modal-"+modal).classList.remove("active");
+                    if(modal == "newpost") resetNewPostForm();
+                }
+            });
         });
 
         function checkForMoreButton(id) {
@@ -98,6 +170,26 @@
             return document.getElementById(id).clientHeight / parseFloat(
                 getComputedStyle(document.querySelector('body'))['font-size']
             )
+        }
+
+        function showReplyForm(response, ownerName) {
+            setupNewPostFormForResponse(response, ownerName);
+            document.getElementById("modal-newpost").classList.add("active");
+        }
+
+        function setupNewPostFormForResponse(response, ownerName) {
+            document.getElementById("newpost-byline").innerHTML = "<em>Replying to '"+ownerName+"'</em>";
+            document.getElementById("newpost-hidden-response").value = response;
+        }
+
+        function resetNewPostForm() {
+            document.getElementById("newpost-byline").innerHTML = "";
+            document.getElementById("newpost-hidden-response").value = "";
+            document.getElementById("newpost-textarea").value = "";
+        }
+
+        function getComments(id) {
+
         }
 
 

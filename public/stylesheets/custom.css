@@ -1,3 +1,10 @@
+#toasts {
+    width: 100%;
+    position: absolute;
+    top: 5px;
+    z-index: 399;
+    pointer-events: none;
+}
 #header-colour {
     background: #0f0c29;  /* fallback for old browsers */
     background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);  /* Chrome 10-25, Safari 5.1-6 */
@@ -6,7 +13,7 @@
     position: sticky;
     width: 100%;
     top: 0;
-    z-index: 399;
+    z-index: 398;
 }
 #breadcrumbs {
     margin-bottom: 20px;
@@ -105,37 +112,14 @@ pre {
     border-color: rgba(232, 37, 0, 1);
 }
 .fade {
-    -webkit-transition: font-size 0.5s;
-    -moz-transition: font-size 0.5s;
-    -ms-transition: font-size 0.5s;
-    -o-transition: font-size 0.5s;
-    transition: font-size 0.5s;
-    -webkit-transition: border-width 0.5s;
-    -moz-transition: border-width 0.5s;
-    -ms-transition: border-width 0.5s;
-    -o-transition: border-width 0.5s;
-    transition: border-width 0.5s;
-    -webkit-transition: padding 0.5s;
-    -moz-transition: padding 0.5s;
-    -ms-transition: padding 0.5s;
-    -o-transition: padding 0.5s;
-    transition: padding 0.5s;
-    -webkit-transition: margin 0.5s;
-    -moz-transition: margin 0.5s;
-    -ms-transition: margin 0.5s;
-    -o-transition: margin 0.5s;
-    transition: margin 0.5s;
-    -webkit-transition: line-height 0.5s;
-    -moz-transition: line-height 0.5s;
-    -ms-transition: line-height 0.5s;
-    -o-transition: line-height 0.5s;
-    transition: line-height 0.5s;
+    -webkit-transition: opacity 0.5s;
+    -moz-transition: opacity 0.5s;
+    -ms-transition: opacity 0.5s;
+    -o-transition: opacity 0.5s;
+    transition: opacity 0.5s;
 }
 .fade.hidden {
-    border-width: 0;
-    padding: 0;
-    margin: 0;
-    line-height: 0;
+    opacity: 0;
 }
 
 .timeline .timeline-item::before {
@@ -144,13 +128,22 @@ pre {
 h5.post-headline {
     margin-bottom: 0.1em;
 }
-.reply-badge {
+kbd.reply-badge {
     font-size: 0.5em;
     padding: 0.4em 0.8em;
+}
+kbd.date-badge {
+    margin-right: 0.8em;
+    background-color: #ffe9b3;
+    color: #525042;
+    font-size: 0.7em;
+    padding: 0.3em 0.6em;
+    font-weight: 700;
 }
 .post-content {
     line-height: 1.4em;
     margin: 0.7em 0;
+    padding-right: 2em;
 }
 .post-content.hide {
     max-height: 11.2em; /* Only show 8 lines to start with */
@@ -159,6 +152,9 @@ h5.post-headline {
 .post-content.show {
     height: auto;
     overflow-y: visible;
+}
+.post-content * {
+    max-width: 100%;
 }
 a samp {
     text-decoration: none !important;
@@ -173,4 +169,22 @@ a.no-decoration:hover {
 .tile-action {
     position: absolute;
     right: 0;
+}
+#more-btn {
+    padding: 0px;
+    width: 100%;
+    border: 0;
+    text-align: left;
+}
+button#more-btn:before {
+    content: "";
+    float: right;
+    z-index: 1;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 90%);
+    width: 100%;
+    height: 4em;
+    margin-top: -80px;
 }

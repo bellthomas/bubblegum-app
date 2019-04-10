@@ -25,7 +25,7 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
          val size = node.getRoutingTable.getSize
          val myInformationString = node.getServer.getLocal.getHostAddress + "," + node.getServer.getPort + "," + node.getRecipientID
          val myInformation = Base64.getEncoder().encodeToString(myInformationString.getBytes)
-         Ok(views.html.networks.show(networkDescription, size, myInformation, BootstrapKeyForm.form))
+         Ok(views.html.networks.show(networkDescription, size, myInformation, BootstrapKeyForm.form, PostForm.form))
       }
    }
 
@@ -90,7 +90,7 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
 
    def newPost(id : String) = Action { implicit request: MessagesRequest[AnyContent] =>
       val errorFunction = { formWithErrors: Form[PostForm] =>
-         Redirect(routes.NetworkController.show(id)).flashing("error" -> "Failed to publish post")
+         Redirect(routes.NetworkController.show(id)).flashing("error" -> "Failed to publish post (form errors)")
       }
 
       val successFunction = { data: PostForm =>
@@ -98,13 +98,22 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
          if(networkDescription != null) {
             val node = State.bubblegum.getNode(networkDescription.getID)
             if(node != null) {
+               printf("raw: " + data.content)
                val safe = data.content.replace("<", "&lt;").replace(">", "&gt;")
-               val post = node.savePost(safe)
+               printf("safe:" + safe)
+
+               val post = if(data.response.length > 0) node.saveResponse(safe, data.response) else node.savePost(safe)
+               val redirect = if(data.thread && data.response.length > 0) {
+                  routes.NetworkController.showThread(id, new String(Base64.getEncoder.encode(data.response.getBytes)))
+               } else {
+                  routes.NetworkController.show(id)
+               }
+
                if(post == null) {
-                  Redirect(routes.NetworkController.show(id)).flashing("error" -> "Failed to publish post")
+                  Redirect(redirect).flashing("error" -> "Failed to publish post (post == null)")
                }
                else {
-                  Redirect(routes.NetworkController.show(id)).flashing("success" -> "Post published successfully!")
+                  Redirect(redirect).flashing("success" -> "Post published successfully!")
                }
             }
             else {
@@ -171,7 +180,7 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
             var ownerName = State.getMeta(post.getNetwork + ":" + post.getOwner, "username")
             if(ownerName == null) ownerName = post.getOwner
             if(nd != null) {
-               Ok(views.html.networks.thread(post, ownerName, State.getNetworkDescription(hash)))
+               Ok(views.html.networks.thread(post, ownerName, State.getNetworkDescription(hash), PostForm.form))
             } else {
                Redirect(routes.NetworkController.show(hash)).flashing("error" -> "Couldn't find that post")
             }

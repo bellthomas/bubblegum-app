@@ -1,6 +1,7 @@
 @import java.util.UUID
 @(request: MessagesRequestHeader)
 @* Flash shows updates to a page *@
+<div id="toasts">
 @request.flash.data.map { case (name, value) =>
     @defining(UUID.randomUUID()) { id =>
 
@@ -20,14 +21,11 @@
                   document.getElementsByClassName("toast-@{id}")[0].classList.add("hidden");
                   setTimeout(function () {
                       document.getElementsByClassName("container-@{id}")[0].classList.add("hidden");
-                      setTimeout(function () {
-                          //document.getElementsByClassName("container-@{id}")[0].remove();
-                      }, 500);
                   }, 500);
-              }, 4000);
+              }, 3000);
               </script>
 
         </div>
     }
-
 }
+</div>

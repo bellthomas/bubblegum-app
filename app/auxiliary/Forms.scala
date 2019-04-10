@@ -2,7 +2,6 @@ package auxiliary
 
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.mvc._
 
 // New Network
 case class NewNetworkForm(name: String, display: String)
@@ -26,11 +25,13 @@ object BootstrapKeyForm {
 }
 
 // Post Form
-case class PostForm(content: String)
+case class PostForm(content: String, response: String, thread: Boolean)
 object PostForm {
    val form: Form[PostForm] = Form(
       mapping(
-         "content" -> text
+         "content" -> text,
+         "response" -> text,
+         "thread" -> boolean
       )(PostForm.apply)(PostForm.unapply)
    )
 }
