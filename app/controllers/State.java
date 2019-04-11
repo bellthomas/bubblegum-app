@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 public class State {
     static {
-        NetworkingHelper.setLookupExternalIP(true);
+        NetworkingHelper.setLookupExternalIP(false);
     }
 
     static Bubblegum bubblegum = new Bubblegum(false);
@@ -127,12 +127,11 @@ public class State {
     }
 
     static List<Post> refreshEpoch(BubblegumNode node, long epoch) {
-        List<Post> posts = resolveIndex(node, NodeID.hash(epoch));
-//        posts.forEach((p) -> {
-//            if (!nodeIndex.containsKey(epoch)) nodeIndex.put(epoch, new TreeSet<>());
-//            nodeIndex.get(epoch).add(p.getOwner() + ":" + p.getID());
-//        });
-        return posts;
+        return resolveIndex(node, NodeID.hash(epoch));
+    }
+
+    static List<Post> getComments(BubblegumNode node, String pid) {
+        return resolveIndex(node, NodeID.hash("responses_" + pid));
     }
 
     static Post lookupPost(BubblegumNode node, String dest, String pid) {

@@ -36,7 +36,7 @@ object PostForm {
    )
 }
 
-// Post Retrieve AJAX
+// Posts Retrieval AJAX
 case class PostRetrievalRequest(epoch: Int, fromTime: Long)
 object PostRetrievalRequest {
    //validation 1 goes here
@@ -46,5 +46,17 @@ object PostRetrievalRequest {
          "fromTime" -> longNumber(0, Long.MaxValue),
 
       )(PostRetrievalRequest.apply)(PostRetrievalRequest.unapply)
+   )
+}
+
+
+// Comments Retrieval AJAX
+case class CommentsRetrievalRequest(pid: String)
+object CommentsRetrievalRequest {
+   //validation 1 goes here
+   val userForm = Form(
+      mapping(
+         "pid" -> nonEmptyText
+      )(CommentsRetrievalRequest.apply)(CommentsRetrievalRequest.unapply)
    )
 }

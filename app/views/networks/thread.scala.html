@@ -1,5 +1,6 @@
 @import io.hbt.bubblegum.core.databasing.Post
 @import controllers.State.NetworkDescription
+@import java.util.Base64
 @import auxiliary._
 
 @(post : Post, ownerName : String, network : NetworkDescription, postForm: Form[PostForm])(implicit request: MessagesRequestHeader)
@@ -33,20 +34,26 @@
                     <a href="#">Thread</a>
                 </li>
             </ul>
-@*            <div class="toolbar float-right column col-6 col-sm-12">*@
-@*                <span><a href="#" id="open-modal-menu"><i class="icon icon-apps" style="color:#66758c;"></i></a></span>*@
-@*            </div>*@
+            <div class="toolbar float-right column col-6 col-sm-12">
+                <span><a onclick="reload(true);" id="refresh-button"><i class="icon icon-refresh" style="color:#66758c;"></i></a></span>
+                <span style="color: #66758c;padding-right: 20px;padding-left: 10px;margin-top: 1px;"> / </span>
+                <span>
+                    <label class="form-switch">
+                        <input id="auto-reload" type="checkbox"><i class="form-icon"></i> Auto Refresh
+                    </label>
+                </span>
+            </div>
         </div>
     </div>
 
     @toast(request)
 
 
-    <div class="container grid-md">
-        <div id="posts" class="timeline" data-depth="0">
-            <div class="timeline-item" data-time="@post.getTimeCreated" data-owner="b" id="@post.getID">
+    <div class="container grid-lg">
+        <div id="posts" class="timeline">
+            <div class="timeline-item" data-time="@post.getTimeCreated" data-owner="b">
                 <div class="timeline-left"><a class="timeline-icon"></a></div>
-                <div class="timeline-content">
+                <div id="@{post.getOwner}:@{post.getID}" class="timeline-content" data-depth="0">
                     <div class="post-tile tile">
                         <div class="tile-content">
                             <div class="tile-action">
@@ -54,50 +61,27 @@
                                     <button class="btn btn-sm">Reply</button>
                                 </a>
                                 <br>
-                                <code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-color: #d73e48;border-width: 1px;border-style: double;">You</code>
+                                @if(State.hashToNodeID(network.getHash) == post.getOwner) {
+                                    <code class="float-right hash-id me">You</code>
+                                } else {
+                                    <code class="float-right hash-id">User #@post.getOwner.substring(0, Math.min(post.getOwner.length(), 8));</code>
+                                }
                             </div>
                             <h5 class="post-headline">@ownerName</h5>
-                            <kbd id="main-post-time" class="date-badge"></kbd>
-                            <script>
-                                var date = new Date(@post.getTimeCreated);
-                                var dateString = date.toLocaleTimeString();
-                                if(parseInt(date.getTime() / 86400000) != parseInt(Date.now() / 86400000)) {
-                                    dateString += ', '+ date.toLocaleDateString();
-                                }
-                                document.getElementById("main-post-time").innerText = dateString;
-                            </script>
-                            <p id="content-@post.getID" class="post-content hide">@Html(post.getContent.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>"))</p>
+                            <kbd id="main-post-time" class="date-badge">...</kbd>
+                            @if(post.getResponse.length > 0) {
+                                <kbd class="reply-badge">COMMENT</kbd>
+                                <a class="no-decoration" href="@routes.NetworkController.showThread(network.getHash, Base64.getEncoder().encodeToString(post.getResponse.getBytes))">
+                                    <samp>Original Post →</samp>
+                                </a>
+                            }
+                            <div id="content-@post.getID" class="post-content hide"><div id="main-post-inner" class="inner">Loading...</div></div>
                         </div>
                     </div>
-                    <div class="divider text-center" data-content="Comments"></div>
-                    <div id="posts" class="timeline" data-depth="1">
-                        <div class="timeline-item" data-time="@post.getTimeCreated" data-owner="b" id="@post.getID">
-                            <div class="timeline-left"><a class="timeline-icon"></a></div>
-                            <div class="timeline-content">
-                                <div class="post-tile tile">
-                                    <div class="tile-content">
-                                        <div class="tile-action">
-                                            <a class="float-right" onclick="showReplyForm('@{post.getOwner}:@{post.getID}', '@ownerName')" href="#">
-                                                <button class="btn btn-sm">Reply</button>
-                                            </a>
-                                            <br>
-                                            <code class="float-right" style="padding: 3px 5px;margin-top: 10px;border-color: #d73e48;border-width: 1px;border-style: double;">You</code>
-                                        </div>
-                                        <h5 class="post-headline">@ownerName</h5>
-                                        <kbd id="main-post-time" class="date-badge"></kbd>
-                                        <script>
-                                            var date = new Date(@post.getTimeCreated);
-                                            var dateString = date.toLocaleTimeString();
-                                            if(parseInt(date.getTime() / 86400000) != parseInt(Date.now() / 86400000)) {
-                                                dateString += ', '+ date.toLocaleDateString();
-                                            }
-                                            document.getElementById("main-post-time").innerText = dateString;
-                                        </script>
-                                        <p id="content-@post.getID" class="post-content hide">@Html(post.getContent.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>"))</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div>
+                        <div class="divider text-center" data-content="Comments"></div>
+                        <button id="responses-loading-@{post.getOwner}:@{post.getID}" onclick="getComments('@{post.getOwner}:@{post.getID}')" class="btn btn-link loading load-comments"></button>
+                        <div id="responses-@{post.getOwner}:@{post.getID}" class="timeline" data-depth="1"></div>
                     </div>
                 </div>
             </div>
@@ -111,13 +95,14 @@
                 <a href="#" id="close-modal-newpost" class="btn btn-clear float-right" aria-label="Close"></a>
                 <div id="newpost-modal-title" class="modal-title h5">New Response</div>
             </div>
-            @helper.form(routes.NetworkController.newPost(network.getHash)) {
+            @helper.form(routes.NetworkController.newPost(network.getHash), 'onsubmit -> "return prepareForNewPostSubmit()") {
                 @helper.CSRF.formField
 
                 <div class="modal-body">
                     <div class="content">
-                        <span id="newpost-byline" style="margin-bottom: 15px;"></span>
-                        <textarea class="form-input" rows="5" value="" name="content" id="newpost-textarea" placeholder="eg. I wandered lonely as a cloud..."></textarea>
+                        <span id="newpost-byline" style="display: block;margin-bottom: 15px;"></span>
+                        <textarea class="form-input" rows="5" value="" id="newpost-textarea" placeholder="eg. I wandered lonely as a cloud..."></textarea>
+                        <input id="newpost-content" type="hidden" value="" name="content" />
                         <input id="newpost-hidden-response" type="hidden" name="response" value="" />
                         <input type="hidden" name="thread" value="true" />
                     </div>
@@ -129,68 +114,54 @@
         </div>
     </div>
 
+    <script src="@routes.Assets.versioned("javascripts/thread.js")"></script>
     <script>
+        var getCommentsPath = "@helper.CSRF(routes.NetworkController.getComments(network.getHash))";
+        var epochDuration = @io.hbt.bubblegum.core.Configuration.BIN_EPOCH_DURATION;
+        var threadLink = '@routes.NetworkController.showThread(network.getHash, "$")';
+        var selfID = "@State.hashToNodeID(network.getHash)";
+
+        var consecutiveFails = 0;
+        var posts = new Set();
+        var shownResponseSets = [];
+
+        var mde;
+        var md;
+
         document.addEventListener("DOMContentLoaded", function() {
             // Sort out main post
             checkForMoreButton("content-@post.getID");
-            new SimpleMDE({ element: document.getElementById("newpost-textarea") });
+            mde = new SimpleMDE({ element: document.getElementById("newpost-textarea") });
+            md = new markdownit();
 
-            var modals = ["newpost"];
-            modals.forEach(function(modal) {
-                document.getElementById("open-modal-"+modal).onclick = function(){
-                    document.getElementById("modal-"+modal).classList.add("active");
-                }
-                document.getElementById("close-modal-"+modal).onclick = function(){
-                    document.getElementById("modal-"+modal).classList.remove("active");
-                    if(modal == "newpost") resetNewPostForm();
-                }
-                document.getElementById("bg-modal-"+modal).onclick = function(){
-                    document.getElementById("modal-"+modal).classList.remove("active");
-                    if(modal == "newpost") resetNewPostForm();
-                }
-            });
-        });
-
-        function checkForMoreButton(id) {
-            if(getEmHeight(id) > 11) {
-                var showMore = document.createElement("button");
-                showMore.classList.add("btn", "btn-link");
-                showMore.textContent = "More...";
-                showMore.style.padding = 0;
-                showMore.onclick = function() {
-                    document.getElementById(id).classList.remove("hide");
-                    this.remove();
-                };
-                var referenceNode = document.getElementById(id);
-                referenceNode.parentNode.insertBefore(showMore, referenceNode.nextSibling);
+            var date = new Date(@post.getTimeCreated);
+            var dateString = date.toLocaleTimeString();
+            if(parseInt(date.getTime() / 86400000) != parseInt(Date.now() / 86400000)) {
+                dateString += ', '+ date.toLocaleDateString();
             }
-        }
+            document.getElementById("main-post-time").innerText = dateString;
 
-        function getEmHeight(id) {
-            return document.getElementById(id).clientHeight / parseFloat(
-                getComputedStyle(document.querySelector('body'))['font-size']
-            )
-        }
+            var contentString = "@post.getContent";
+            content = md.render(LZString.decompressFromBase64(contentString));
+            document.getElementById("main-post-inner").innerHTML = content;
 
-        function showReplyForm(response, ownerName) {
-            setupNewPostFormForResponse(response, ownerName);
-            document.getElementById("modal-newpost").classList.add("active");
-        }
+            getComments("@{post.getOwner}:@{post.getID}");
+            shownResponseSets.push("@{post.getOwner}:@{post.getID}");
 
-        function setupNewPostFormForResponse(response, ownerName) {
-            document.getElementById("newpost-byline").innerHTML = "<em>Replying to '"+ownerName+"'</em>";
-            document.getElementById("newpost-hidden-response").value = response;
-        }
+            window.setInterval(function(){
+                if(document.getElementById("auto-reload").checked) reload(false);
+                if(consecutiveFails > 5) location.reload();
+            }, 3000);
 
-        function resetNewPostForm() {
-            document.getElementById("newpost-byline").innerHTML = "";
-            document.getElementById("newpost-hidden-response").value = "";
-            document.getElementById("newpost-textarea").value = "";
-        }
-
-        function getComments(id) {
-
-        }
+            document.getElementById("close-modal-newpost").onclick = function(){
+                document.getElementById("modal-newpost").classList.remove("active");
+                resetNewPostForm();
+            }
+            document.getElementById("bg-modal-newpost").onclick = function(){
+                document.getElementById("modal-newpost").classList.remove("active");
+                resetNewPostForm();
+            }
+        });
 
 
     </script>

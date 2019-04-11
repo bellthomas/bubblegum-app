@@ -129,7 +129,7 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
    def getEpoch(hash : String) = Action { implicit request: MessagesRequest[AnyContent] =>
       PostRetrievalRequest.userForm.bindFromRequest().fold(
          formWithErrors => {
-            BadRequest("{'message':'Invalid request'}")
+            BadRequest("{'message':'Invalid request', 'description':'"+formWithErrors.errors(0)+"'}")
          },
          user => {
             val node = State.getNodeForHash(hash)
@@ -186,6 +186,39 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
       } else {
          Redirect(routes.NetworkController.show(hash)).flashing("error" -> "Couldn't find that post")
       }
+   }
+
+   def getComments(hash : String) = Action { implicit request: MessagesRequest[AnyContent] =>
+      CommentsRetrievalRequest.userForm.bindFromRequest().fold(
+         formWithErrors => {
+            BadRequest("{'message':'Invalid request'}")
+         },
+         form => {
+            val node = State.getNodeForHash(hash)
+            if(node != null) {
+               val posts = State.getComments(node, form.pid).asScala
+               val entities = mutable.ListBuffer[JsValue]()
+               for(post <- posts) {
+                  var ownerDisplay = State.getMeta(post.getNetwork + ":" + post.getOwner, "username")
+                  ownerDisplay = if(ownerDisplay == null) post.getOwner else ownerDisplay
+
+                  entities += Json.obj(
+                     "owner" -> ownerDisplay,
+                     "ownerHash" -> post.getOwner,
+                     "content" -> post.getContent,
+                     "id" -> post.getID,
+                     "time" -> post.getTimeCreated,
+                     "response" -> post.getResponse
+                  )
+               }
+
+               Ok(Json.stringify(Json.obj("data" -> Json.toJson(entities))))
+            }
+            else {
+               BadRequest("{'message':'No node found.'}")
+            }
+         }
+      )
    }
 
 }
