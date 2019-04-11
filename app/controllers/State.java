@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 public class State {
     static {
-        NetworkingHelper.setLookupExternalIP(false);
+        NetworkingHelper.setLookupExternalIP(true);
     }
 
     static Bubblegum bubblegum = new Bubblegum(false);

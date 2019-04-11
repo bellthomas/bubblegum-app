@@ -1,6 +1,6 @@
 #toasts {
     width: 100%;
-    position: absolute;
+    position: fixed;
     top: 5px;
     z-index: 399;
     pointer-events: none;

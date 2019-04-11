@@ -64,7 +64,7 @@
                                 @if(State.hashToNodeID(network.getHash) == post.getOwner) {
                                     <code class="float-right hash-id me">You</code>
                                 } else {
-                                    <code class="float-right hash-id">User #@post.getOwner.substring(0, Math.min(post.getOwner.length(), 8));</code>
+                                    <code class="float-right hash-id">User #@post.getOwner.substring(0, Math.min(post.getOwner.length(), 8))</code>
                                 }
                             </div>
                             <h5 class="post-headline">@ownerName</h5>

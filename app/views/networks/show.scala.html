@@ -236,8 +236,11 @@
                 showAnOlderEpoch();
                 timeAtLastReload = reloadTime;
 
-                document.getElementById("posts-loading").hidden = true;
-                if(posts.size == 0) document.getElementById("posts-empty").hidden = false;
+                window.setTimeout(function() {
+                    document.getElementById("posts-loading").hidden = true;
+                    if(posts.size == 0) document.getElementById("posts-empty").hidden = false;
+                }, 1000);
+
 
                 document.getElementById("refresh-button").onclick = function() {
                     reload();

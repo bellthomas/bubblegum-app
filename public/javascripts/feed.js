@@ -78,7 +78,10 @@ function getEpoch(num, from=0) {
 }
 
 function insertPost(p) {
-    if(posts.size == 0) document.getElementById("posts-empty").hidden = true;
+    if(posts.size == 0) {
+        document.getElementById("posts-empty").hidden = true;
+        document.getElementById("posts-loading").hidden = true;
+    }
     var closestBefore = Number.MAX_SAFE_INTEGER;
     var closestID = "";
     var temp;
