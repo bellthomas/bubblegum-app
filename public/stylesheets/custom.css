@@ -226,3 +226,13 @@ button#more-btn:before {
 .timeline .timeline-item {
     margin-bottom: 0.5rem;
 }
+#loader {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffffe8;
+    z-index: 1000;
+}
+#loader .loading {
+    height: 100%;
+}
