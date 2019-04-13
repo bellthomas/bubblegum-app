@@ -5,6 +5,7 @@
 
 # An example controller showing a sample home page
 GET     /                           controllers.InstanceController.index
+GET     /test                       controllers.AsyncController.chunked
 GET     /new                        controllers.InstanceController.createForm
 POST    /new                        controllers.InstanceController.createSubmit
 GET     /:id                        controllers.NetworkController.show(id)
@@ -15,7 +16,6 @@ POST    /:id/post                   controllers.NetworkController.newPost(id)
 GET     /:id/thread/:pid            controllers.NetworkController.showThread(id, pid)
 POST    /:id/ajax/getEpoch          controllers.NetworkController.getEpoch(id)
 POST    /:id/ajax/getComments       controllers.NetworkController.getComments(id)
-
 
 
 # An example controller showing how to use dependency injection

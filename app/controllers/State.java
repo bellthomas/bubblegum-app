@@ -1,5 +1,6 @@
 package controllers;
 
+import com.google.common.base.Charsets;
 import io.hbt.bubblegum.core.Bubblegum;
 import io.hbt.bubblegum.core.auxiliary.NetworkingHelper;
 import io.hbt.bubblegum.core.databasing.Post;
@@ -7,7 +8,22 @@ import io.hbt.bubblegum.core.exceptions.MalformedKeyException;
 import io.hbt.bubblegum.core.kademlia.BubblegumNode;
 import io.hbt.bubblegum.core.kademlia.NodeID;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.awt.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -225,6 +241,38 @@ public class State {
 
     private static void cacheUpkeep(String hash) {
 
+    }
+
+
+    public static class CapitalizeClient {
+        public static InputStream main(Socket socket) {
+            try {
+                var out = new PrintWriter(socket.getOutputStream(), true);
+                out.println("qwertyuiopasdfgh"); // 16 bytes in ascii
+
+                byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                IvParameterSpec ivspec = new IvParameterSpec(iv);
+
+                final Cipher c2 = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                SecretKey originalKey = new SecretKeySpec("qwertyuiopasdfgh".getBytes(Charsets.US_ASCII), "AES");
+                c2.init(Cipher.DECRYPT_MODE, originalKey, ivspec);
+                CipherInputStream in = new CipherInputStream(socket.getInputStream(), c2);
+                return in;
+            } catch (UnknownHostException e) {
+                return null;
+            } catch (IOException e) {
+                return null;
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidAlgorithmParameterException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
 }
