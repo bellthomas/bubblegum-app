@@ -17,6 +17,7 @@
                 </section>
                 <section class="navbar-section">
                     @if(size > 0) {
+                        <a href="@routes.UploadController.index(name.getHash)" class="btn btn-link btn-white" style="margin-right: 10px;"><i class="icon icon-upload"></i></a>
                         <a href="#" id="open-modal-newpost" class="btn btn-white btn-white-border">New Post</a>
                     }
                 </section>
@@ -104,7 +105,7 @@
 
     } else {
         <div class="container grid-md">
-            <h4 id="posts-loading" class="text-center">Loading...</h4>
+            <h4 id="posts-loading" class="text-center" style="padding: 30px 0;">Loading...</h4>
             <h4 id="posts-empty" class="text-center" style="padding: 30px 0;" hidden>No Recent Posts</h4>
             <div id="posts" class="timeline"></div>
             <button id="load-more" class="btn btn-link fade hidden" onclick="showAnOlderEpoch()">
@@ -190,6 +191,8 @@
         var threadLink = '@routes.NetworkController.showThread(name.getHash, "$")';
         var getEpochPath = "@helper.CSRF(routes.NetworkController.getEpoch(name.getHash))";
         var selfID = "@State.hashToNodeID(name.getHash)";
+        var resourceURL = '@routes.NetworkController.resource(name.getHash, "$", "$")';
+        var selfURL = '@routes.NetworkController.resource(name.getHash, State.hashToNodeID(name.getHash), "$")';
 
         var posts = new Set();
         var epochsLoaded = new Set();

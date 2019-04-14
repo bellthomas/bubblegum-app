@@ -1,6 +1,8 @@
 function checkForMoreButton(id) {
     if(getEmHeight(id) > 11) {
+        document.getElementById(id).classList.add("more-content-fade");
         var showMore = document.createElement("button");
+        showMore.setAttribute("id", "more-btn");
         showMore.classList.add("btn", "btn-link");
         showMore.textContent = "More...";
         showMore.style.padding = 0;
@@ -10,6 +12,8 @@ function checkForMoreButton(id) {
         };
         var referenceNode = document.getElementById(id);
         referenceNode.parentNode.insertBefore(showMore, referenceNode.nextSibling);
+    } else {
+        document.getElementById(id).classList.remove("hide");
     }
 }
 
@@ -38,6 +42,7 @@ function resetNewPostForm() {
 function prepareForNewPostSubmit() {
     var content = mde.value();
     if(content.length > 0) {
+        content = content.replace(/bb:\/\/self\//gi, selfURL.replace("$", ""));
         var compressed = LZString.compressToBase64(content);
         document.getElementById("newpost-content").value = compressed;
         return true;
@@ -187,7 +192,28 @@ function postToHTML(p) {
         '</div>';
 
     entity.innerHTML = inner;
+    fixBBLinks(entity);
     return entity;
+}
+
+function fixBBLinks(entity) {
+    // Fix bb://{}/{} links
+    entity.querySelectorAll("[href]").forEach(function(e) {
+        if(e.hasAttribute("href")) {
+            e.target = "_blank";
+            if(e.href.includes("bb://")) {
+                e.href = e.href.replace("bb://", resourceURL.replace("$/$", ""));
+            }
+        }
+    });
+
+    entity.querySelectorAll("[src]").forEach(function(e) {
+        if(e.hasAttribute("src")) {
+            if(e.src.includes("bb://")) {
+                e.src = e.src.replace("bb://", resourceURL.replace("$/$", ""));
+            }
+        }
+    });
 }
 
 function reload(showActivity) {

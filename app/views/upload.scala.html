@@ -1,0 +1,97 @@
+@import java.nio.file.Path
+
+@(hash: String, name: String, nid: String, files: Iterable[Path], form: Form[UploadData])(implicit request: MessagesRequestHeader)
+
+@main("Upload Resource") {
+    <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/dropzone.min.css")">
+    <div id="header-colour">
+        <div class="container grid-lg">
+            <header class="navbar" style="padding:8px 0;">
+
+                <section class="navbar-section">
+                    <a href="@routes.NetworkController.show(hash)" class="btn btn-link btn-white"><i class="icon icon-arrow-left"></i></a>
+                </section>
+                <section class="navbar-center">
+                    <img style="max-height:38px;" src="@routes.Assets.versioned("images/logo-256.png")" />
+                </section>
+                <section class="navbar-section">
+                </section>
+            </header>
+        </div>
+    </div>
+    <div id="breadcrumbs" class="container grid-lg">
+        <div class="columns">
+            <ul class="breadcrumb column col-6 col-sm-12">
+                <li class="breadcrumb-item">
+                    <a href="@routes.InstanceController.index()">Networks</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="@routes.NetworkController.show(hash)">@name</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="#">Upload</a>
+                </li>
+            </ul>
+            <div class="toolbar float-right column col-6 col-sm-12">
+            </div>
+        </div>
+    </div>
+
+    @toast(request)
+    <div class="container grid-lg">
+        <form action="@helper.CSRF(routes.UploadController.upload(hash))" class="dropzone" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="name" />
+            <div class="fallback"><input name="name" type="name" multiple /></div>
+        </form>
+
+
+        @if(files.size > 0) {
+            <table class="table" style="margin:40px 0;">
+                <thead>
+                    <tr>
+                        <th style="border-bottom: 1px solid #dadee43b;">Resources</th>
+                        <th style="border-bottom: 1px solid #dadee43b;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(file <- files) {
+                        <tr>
+                            <td style="border-bottom: 1px solid #dadee43b;"><kbd>@file.getFileName</kbd></td>
+                            <td style="border-bottom: 1px solid #dadee43b;text-align: right;color: #d0d0d0;">
+                                <a style="cursor: pointer;text-decoration: none !important;" onclick="showCopied('bb://@{nid}/@{file.getFileName}');">Copy</a>
+                                <span> · </span>
+                                <a href="@routes.NetworkController.resource(hash, nid, file.getFileName.toString)" target="_blank" style="text-decoration: none !important;">View</a>
+                                <span> · </span>
+                                <a href="#" style="text-decoration: none !important;">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+
+    <div id="toasts" style="bottom: 5px;top: unset;">
+        <div class="container grid-sm fade hidden container-linkcopy" style="margin-bottom: 20px;">
+        <div class="toast toast-info text-center fade hidden toast-linkcopy">Link Copied!</div>
+    </div>
+
+
+</div>
+
+    <script src="@routes.Assets.versioned("javascripts/dropzone.min.js")"></script>
+    <script>
+    function showCopied(text) {
+        copyToClipboard(text);
+        document.getElementsByClassName("toast-linkcopy")[0].classList.remove("hidden");
+        document.getElementsByClassName("container-linkcopy")[0].classList.remove("hidden");
+        setTimeout(function () {
+            document.getElementsByClassName("toast-linkcopy")[0].classList.add("hidden");
+            setTimeout(function () {
+                document.getElementsByClassName("container-linkcopy")[0].classList.add("hidden");
+            }, 500);
+        }, 3000);
+    }
+    </script>
+}

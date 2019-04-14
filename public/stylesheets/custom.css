@@ -146,7 +146,7 @@ kbd.date-badge {
     padding-right: 2em;
 }
 .post-content.hide {
-    max-height: 11.2em; /* Only show 8 lines to start with */
+    max-height: 16em; /* Only show 8 lines to start with */
     overflow-y: hidden;
 }
 .post-content.show {
@@ -199,7 +199,7 @@ button#more-btn:before {
 }
 .hash-id {
     padding: 3px 5px;
-    margin-top: 10px;
+    margin-top: 5px;
     border-color: #d73e48;
     border-width: 1px;
     border-style: double;
@@ -235,4 +235,7 @@ button#more-btn:before {
 }
 #loader .loading {
     height: 100%;
+}
+.breadcrumb .breadcrumb-item:not(:first-child)::before {
+    padding-right: .25rem;
 }

@@ -120,6 +120,8 @@
         var epochDuration = @io.hbt.bubblegum.core.Configuration.BIN_EPOCH_DURATION;
         var threadLink = '@routes.NetworkController.showThread(network.getHash, "$")';
         var selfID = "@State.hashToNodeID(network.getHash)";
+        var resourceURL = '@routes.NetworkController.resource(network.getHash, "$", "$")';
+        var selfURL = '@routes.NetworkController.resource(network.getHash, State.hashToNodeID(network.getHash), "$")';
 
         var consecutiveFails = 0;
         var posts = new Set();
@@ -130,7 +132,6 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             // Sort out main post
-            checkForMoreButton("content-@post.getID");
             mde = new SimpleMDE({ element: document.getElementById("newpost-textarea") });
             md = new markdownit();
 
@@ -142,11 +143,15 @@
             document.getElementById("main-post-time").innerText = dateString;
 
             var contentString = "@post.getContent";
+
             content = md.render(LZString.decompressFromBase64(contentString));
             document.getElementById("main-post-inner").innerHTML = content;
+            fixBBLinks(document.getElementById("main-post-inner"));
 
             getComments("@{post.getOwner}:@{post.getID}");
             shownResponseSets.push("@{post.getOwner}:@{post.getID}");
+
+            checkForMoreButton("content-@post.getID");
 
             window.setInterval(function(){
                 if(document.getElementById("auto-reload").checked) reload(false);

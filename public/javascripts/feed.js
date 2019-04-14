@@ -159,7 +159,8 @@ function postToHTML(p) {
     }
 
     var threadURI = btoa(p["ownerHash"] + ":" + p["id"]);
-    var content = md.render(LZString.decompressFromBase64(p["content"]));
+    var markdown = LZString.decompressFromBase64(p["content"]);
+    var content = md.render(markdown);
 
     var inner = '<div class="timeline-left">' +
         '<a class="timeline-icon"></a>' +
@@ -186,6 +187,25 @@ function postToHTML(p) {
         '</div>';
 
     entity.innerHTML = inner;
+
+    // Fix bb://{}/{} links
+    entity.querySelectorAll("[href]").forEach(function(e) {
+        if(e.hasAttribute("href")) {
+            e.target = "_blank";
+            if(e.href.includes("bb://")) {
+                e.href = e.href.replace("bb://", resourceURL.replace("$/$", ""));
+            }
+        }
+    });
+
+    entity.querySelectorAll("[src]").forEach(function(e) {
+        if(e.hasAttribute("src")) {
+            if(e.src.includes("bb://")) {
+                e.src = e.src.replace("bb://", resourceURL.replace("$/$", ""));
+            }
+        }
+    });
+
     return entity;
 }
 
@@ -219,6 +239,7 @@ function resetNewPostForm() {
 function prepareForNewPostSubmit() {
     var content = mde.value();
     if(content.length > 0) {
+        content = content.replace(/bb:\/\/self\//gi, selfURL.replace("$", ""));
         var compressed = LZString.compressToBase64(content);
         document.getElementById("newpost-content").value = compressed;
         return true;

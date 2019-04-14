@@ -60,3 +60,4 @@ object CommentsRetrievalRequest {
       )(CommentsRetrievalRequest.apply)(CommentsRetrievalRequest.unapply)
    )
 }
+
