@@ -6,6 +6,7 @@ import play.api.mvc._
 import collection.JavaConverters._
 import play.api.data.Form
 import auxiliary._
+import io.hbt.bubblegum.core.kademlia.BubblegumNode.Builder
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
@@ -42,6 +43,7 @@ class InstanceController @Inject()(cc: MessagesControllerComponents) extends Mes
 
       val successFunction = { data: NewNetworkForm =>
          val node = State.bubblegum.createNode()
+         print(node.getNodeIdentifier.toString)
          if(node != null) {
             val hash = State.newNetworkDescription(node.getIdentifier, data.name, data.display, State.randomColour()).getHash
             Redirect(routes.NetworkController.show(hash)).flashing("success" -> "Network created successfully!")
