@@ -115,9 +115,9 @@ class UploadController @Inject() (cc:MessagesControllerComponents)
                      ), replace = true)
                      Ok("File uploaded")
                   }
-//                  catch {
-//                     case e: Exception => BadRequest("Failed (exception "+e.getMessage+")")
-//                  }
+                  catch {
+                     case e: Exception => BadRequest("Failed (exception "+e.getMessage+")")
+                  }
 
                } else {
                   BadRequest("Failed 1")
