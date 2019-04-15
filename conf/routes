@@ -19,12 +19,6 @@ POST    /:id/upload/post            controllers.UploadController.upload(id)
 POST    /:id/ajax/getEpoch          controllers.NetworkController.getEpoch(id)
 POST    /:id/ajax/getComments       controllers.NetworkController.getComments(id)
 
-
-# An example controller showing how to use dependency injection
-#GET     /count                      controllers.CountController.count
-# An example controller showing how to write asynchronous code
-#GET     /message                    controllers.AsyncController.message
-
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 

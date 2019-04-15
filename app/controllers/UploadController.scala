@@ -107,6 +107,7 @@ class UploadController @Inject() (cc:MessagesControllerComponents)
                   try {
                      if(Files.notExists(Paths.get(io.hbt.bubblegum.core.Configuration.RESOLVER_ASSETS_FOLDER, network.getID))) {
                         Files.createDirectory(Paths.get(io.hbt.bubblegum.core.Configuration.RESOLVER_ASSETS_FOLDER, network.getID))
+                        println("Created:" + Paths.get(io.hbt.bubblegum.core.Configuration.RESOLVER_ASSETS_FOLDER, network.getID).toAbsolutePath.toString)
                      }
                      picture.ref.copyTo(Paths.get(
                         io.hbt.bubblegum.core.Configuration.RESOLVER_ASSETS_FOLDER,

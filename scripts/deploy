@@ -5,6 +5,7 @@ CURRENT="$(pwd)"
 cd $DIR
 
 # Build the application and structure build folder for deployment.
+sbt clean
 sbt dist
 mkdir .tmp
 set -x
