@@ -1,6 +1,6 @@
 FROM openjdk:11-jre
 COPY .tmp /app
-COPY scripts/start.sh /bubblegum.sh
+COPY scripts/start /bubblegum.sh
 EXPOSE 80 443
 RUN ["chmod", "+x", "/app/bin/start"]
 RUN ["chmod", "+x", "/bubblegum.sh"]

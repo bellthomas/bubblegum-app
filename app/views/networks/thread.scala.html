@@ -39,7 +39,7 @@
                 <span style="color: #66758c;padding-right: 20px;padding-left: 10px;margin-top: 1px;"> / </span>
                 <span>
                     <label class="form-switch">
-                        <input id="auto-reload" type="checkbox"><i class="form-icon"></i> Auto Refresh
+                        <input id="auto-reload" selected="selected" type="checkbox"><i class="form-icon"></i> Auto Refresh
                     </label>
                 </span>
             </div>
@@ -152,6 +152,10 @@
             shownResponseSets.push("@{post.getOwner}:@{post.getID}");
 
             checkForMoreButton("content-@post.getID");
+
+            window.setInterval(function(){
+                reload(false);
+            }, 1000);
 
             window.setInterval(function(){
                 if(document.getElementById("auto-reload").checked) reload(false);

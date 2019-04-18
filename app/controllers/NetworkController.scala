@@ -103,7 +103,10 @@ class NetworkController @Inject()(cc: MessagesControllerComponents) extends Mess
             if(node != null) {
                val safe = data.content.replace("<", "&lt;").replace(">", "&gt;")
                val post = if(data.response.length > 0) node.saveResponse(safe, data.response) else node.savePost(safe)
-//               if(post != null) State.registerNewLocalPost(node, post)
+               if(post != null) {
+//                  println("Published: "+post.getID)
+//                  State.registerNewLocalPost(node, post)
+               }
                val redirect = if(data.thread && data.response.length > 0) {
                   routes.NetworkController.showThread(id, new String(Base64.getEncoder.encode(data.response.getBytes)))
                } else {

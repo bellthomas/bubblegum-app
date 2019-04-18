@@ -1,4 +1,10 @@
 #!/bin/bash
+
+if (! docker stats --no-stream &> /dev/null ); then    
+	echo "Docker isn't running!"
+    exit
+fi
+
 echo "Stopping containers..."
 if [ "$#" -ne 2 ]; then
 	docker container stop bubblegum

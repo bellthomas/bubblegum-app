@@ -5,11 +5,11 @@ function reload() {
         var headAtLastReload = parseInt(timeAtLastReload / epochDuration)
 
         if(newHead == headAtLastReload) {
-            getEpoch(newHead, timeAtLastReload);
+            getEpoch(newHead, timeAtLastReload - 2000);
             timeAtLastReload = refreshTime;
         } else if (newHead == (headAtLastReload + 1)) {
             getEpoch(newHead);
-            getEpoch(headAtLastReload, timeAtLastReload);
+            getEpoch(headAtLastReload, timeAtLastReload - 2000);
             timeAtLastReload = refreshTime;
         } else {
             // Clear board and reload fresh

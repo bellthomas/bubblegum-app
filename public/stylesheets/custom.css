@@ -213,7 +213,7 @@ button#more-btn:before {
     width: 100%;
     display:block;
     font-size: 0.8em;
-    padding: 0 0 0 0;
+    padding: 0 0 15px 0;
     line-height: 2em;
 }
 .inner {

@@ -118,7 +118,7 @@ function insertComment(parent, p) {
     if (closestID.length > 0) {
         var closestDOMNode = document.getElementById(closestID);
         if (closestDOMNode) {
-            document.getElementById("responses-"+parent).insertBefore(newDOMNode, closestDOMNode);
+            document.getElementById("responses-"+parent).insertBefore(newDOMNode, closestDOMNode.parentElement);
         } else {
             document.getElementById("responses-"+parent).append(newDOMNode);
         }

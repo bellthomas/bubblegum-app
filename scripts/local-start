@@ -1,9 +1,14 @@
 #!/bin/bash
+
+if (! docker stats --no-stream &> /dev/null ); then
+	echo "Docker isn't running!"
+	exit 
+fi
+
 if [ "$#" -ne 2 ]; then
 	echo "Running natively without a proxy."
-	echo "To stop the instance run 'docker container stop bubblegum'."
-	docker run -itd --rm -p 80:80 -p 443:443 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e JAVA_OPTS="-Dhttp.port=80 -Dhttps.port=443 -DuseExternalAddresses=false" --name bubblegum harribellthomas/bubblegum:latest
-	echo "Run 'docker container stop bubblegum' to end the program."
+	docker run -it --rm -p 80:80 -p 443:443 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e JAVA_OPTS="-Dhttp.port=80 -Dhttps.port=443 -DuseExternalAddresses=false" --name bubblegum harribellthomas/bubblegum:latest
+	echo "Use the 'local-stop' script to end the program."
 else
 	echo "Running in proxy mode."
 	PASS=$(uuidgen)

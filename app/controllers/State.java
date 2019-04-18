@@ -153,6 +153,7 @@ public class State {
     }
 
     static List<Post> resolveIndex(BubblegumNode node, NodeID indexNode) {
+        // System.out.println("\nResolving... ("+indexNode+")");
         List<byte[]> idBytes = node.lookup(indexNode);
         List<Post> results = new ArrayList<>();
 
@@ -167,8 +168,10 @@ public class State {
             for(String id : ids) {
                 if(nodeCache.containsKey(id)) {
                     results.add(nodeCache.get(id));
+                    // System.out.println("Cache: " + id);
                 }
                 else {
+                    // System.out.println("Fresh: " + id);
                     String[] idParts = id.split(":");
                     if (idParts.length == 2) {
                         try {
@@ -198,6 +201,7 @@ public class State {
                                     }
                                     else {
                                         nodeCache.put(p.getOwner() + ":" + p.getID(), p);
+                                        // System.out.println("(Cached + "+p.getID()+")");
                                         results.add(p);
                                     }
                                 }
@@ -211,6 +215,7 @@ public class State {
         }
 
         Collections.sort(results, (a, b) -> -1 * (int)(a.getTimeCreated() - b.getTimeCreated()));
+        // System.out.println("Final: " + results.size());
         return results;
     }
 
@@ -218,6 +223,7 @@ public class State {
         if(!cache.containsKey(node.getIdentifier())) cache.put(node.getIdentifier(), new HashMap<>());
         HashMap<String, Post> nodeCache = cache.get(node.getIdentifier());
         nodeCache.put(p.getOwner() + ":" + p.getID(), p);
+        System.out.println("(Cached + "+p.getID()+")");
     }
 
     static boolean haveMeta(String owner, String key) {
