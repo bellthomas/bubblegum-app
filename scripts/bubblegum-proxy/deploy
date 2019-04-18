@@ -1,0 +1,3 @@
+#!/bin/bash
+docker build -t harribellthomas/bubblegum-proxy .
+docker push harribellthomas/bubblegum-proxy
