@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 public class State {
 
-    static Bubblegum bubblegum = new Bubblegum(true);
+    static Bubblegum bubblegum = new Bubblegum(false);
 
     static HashMap<String, NetworkDescription> descriptions = new HashMap<>();
 
@@ -212,6 +212,12 @@ public class State {
 
         Collections.sort(results, (a, b) -> -1 * (int)(a.getTimeCreated() - b.getTimeCreated()));
         return results;
+    }
+
+    static void registerNewLocalPost(BubblegumNode node, Post p) {
+        if(!cache.containsKey(node.getIdentifier())) cache.put(node.getIdentifier(), new HashMap<>());
+        HashMap<String, Post> nodeCache = cache.get(node.getIdentifier());
+        nodeCache.put(p.getOwner() + ":" + p.getID(), p);
     }
 
     static boolean haveMeta(String owner, String key) {

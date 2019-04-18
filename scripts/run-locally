@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ "$#" -ne 2 ]; then
+	echo "Running natively without a proxy."
+	echo "To stop the instance run 'docker container stop bubblegum'."
+	docker run -itd --rm -p 80:80 -p 443:443 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e JAVA_OPTS="-Dhttp.port=80 -Dhttps.port=443 -DuseExternalAddresses=false" --name bubblegum harribellthomas/bubblegum:latest
+	echo "Run 'docker container stop bubblegum' to end the program."
+else
+	echo "Running in proxy mode."
+	docker run -itd --rm -p 80:80 -p 443:443 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e JAVA_OPTS="-Dhttp.port=80 -Dhttps.port=443 -DbubblegumProxy=$1" -e FRP_SERVER_ADDR="$1" -e FRP_TOKEN="$2" --name bubblegum harribellthomas/bubblegum:latest
+	echo "Run 'docker container stop bubblegum' to end the program."
+fi

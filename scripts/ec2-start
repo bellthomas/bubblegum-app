@@ -3,5 +3,5 @@ KEY=$2
 echo "Initialising instance..."
 ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$1 'wget -O - https://gist.githubusercontent.com/HarriBellThomas/22af64d909627b9f7a84f5fecb4da04c/raw/f54623819f07dfd3640d96bfb7e7b496dcc027c8/bubblegum-init.sh | bash'
 echo "Setup, starting application..."
-ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$1 'docker pull harribellthomas/bubblegum:latest && docker run --rm -itd --network host --name bubblegum harribellthomas/bubblegum:latest'
+ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$1 'docker pull harribellthomas/bubblegum:latest && docker run --rm -itd --network host -e JAVA_OPTS="-Dhttp.port=80 -Dhttps.port=443" --name bubblegum harribellthomas/bubblegum:latest'
 echo "Complete."

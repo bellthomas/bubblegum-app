@@ -191,7 +191,6 @@ function postToHTML(p) {
     // Fix bb://{}/{} links
     entity.querySelectorAll("[href]").forEach(function(e) {
         if(e.hasAttribute("href")) {
-            e.target = "_blank";
             if(e.href.includes("bb://")) {
                 e.href = e.href.replace("bb://", resourceURL.replace("$/$", ""));
             }
