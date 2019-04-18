@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "Stopping containers..."
+if [ "$#" -ne 2 ]; then
+	docker container stop bubblegum
+else
+    PASS=$(uuidgen)
+    HOST=$1
+    KEY=$2
+	ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$HOST 'docker container stop bubblegum-proxy'
+	docker container stop bubblegum
+fi
