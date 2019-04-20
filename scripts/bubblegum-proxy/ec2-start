@@ -9,7 +9,7 @@ else
 	echo "Initialising instance..."
 	ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$1 'wget -O - https://gist.githubusercontent.com/HarriBellThomas/22af64d909627b9f7a84f5fecb4da04c/raw/f54623819f07dfd3640d96bfb7e7b496dcc027c8/bubblegum-init.sh | bash'
 	echo "Setup, starting application..."
-	ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$1 'docker pull harribellthomas/bubblegum-proxy:latest && docker run -d --rm -p 80:80 -p 443:443 -p 8080:8080 -p 7000:7000 -p 7000:7000/udp -p 7500:7500 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e FRP_HOST_ADDR="'${HOST}'" -e FRP_TOKEN="'${PASS}'" --name bubblegum-proxy harribellthomas/bubblegum-proxy:latest'
+	ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$1 'docker pull compsci/bubblegum-proxy:latest && docker run -d --rm -p 80:80 -p 443:443 -p 8080:8080 -p 7000:7000 -p 7000:7000/udp -p 7500:7500 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e FRP_HOST_ADDR="'${HOST}'" -e FRP_TOKEN="'${PASS}'" --name bubblegum-proxy compsci/bubblegum-proxy:latest'
 	echo "Complete."
 	echo "Token = $PASS"
 fi

@@ -16,8 +16,8 @@ mv .tmp/bin/* .tmp/bin/start
 
 # Build and publish the Docker image.
 docker build -t bubblegum-app .
-docker tag bubblegum-app harribellthomas/bubblegum
-docker push harribellthomas/bubblegum
+docker tag bubblegum-app compsci/bubblegum
+docker push compsci/bubblegum
 
 # Cleanup
 rm -rf .tmp

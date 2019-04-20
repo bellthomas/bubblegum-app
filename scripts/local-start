@@ -7,7 +7,7 @@ fi
 
 if [ "$#" -ne 2 ]; then
 	echo "Running natively without a proxy."
-	docker run -it --rm -p 80:80 -p 443:443 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e JAVA_OPTS="-Dhttp.port=80 -Dhttps.port=443 -DuseExternalAddresses=false" --name bubblegum harribellthomas/bubblegum:latest
+	docker run -it --rm -p 80:80 -p 443:443 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e JAVA_OPTS="-Dhttp.port=80 -Dhttps.port=443 -DuseExternalAddresses=false" --name bubblegum compsci/bubblegum:latest
 	echo "Use the 'local-stop' script to end the program."
 else
 	echo "Running in proxy mode."
@@ -18,10 +18,10 @@ else
     ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$HOST 'wget -O - https://gist.githubusercontent.com/HarriBellThomas/22af64d909627b9f7a84f5fecb4da04c/raw/f54623819f07dfd3640d96bfb7e7b496dcc027c8/bubblegum-init.sh | bash' > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "Setup, starting application..."
-	    ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$HOST 'docker pull harribellthomas/bubblegum-proxy:latest && docker run -d --rm -p 80:80 -p 443:443 -p 8080:8080 -p 7000:7000 -p 7000:7000/udp -p 7500:7500 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e FRP_HOST_ADDR="'${HOST}'" -e FRP_TOKEN="'${PASS}'" --name bubblegum-proxy harribellthomas/bubblegum-proxy:latest'
+	    ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$HOST 'docker pull compsci/bubblegum-proxy:latest && docker run -d --rm -p 80:80 -p 443:443 -p 8080:8080 -p 7000:7000 -p 7000:7000/udp -p 7500:7500 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e FRP_HOST_ADDR="'${HOST}'" -e FRP_TOKEN="'${PASS}'" --name bubblegum-proxy compsci/bubblegum-proxy:latest'
 		if [ $? -eq 0 ]; then
 			echo "Complete."
-			docker run -itd --rm -p 80:80 -p 443:443 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e JAVA_OPTS="-Dhttp.port=80 -Dhttps.port=443 -DbubblegumProxy=$1" -e FRP_SERVER_ADDR="$1" -e FRP_TOKEN="$PASS" --name bubblegum harribellthomas/bubblegum:latest
+			docker run -itd --rm -p 80:80 -p 443:443 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e JAVA_OPTS="-Dhttp.port=80 -Dhttps.port=443 -DbubblegumProxy=$1" -e FRP_SERVER_ADDR="$1" -e FRP_TOKEN="$PASS" --name bubblegum compsci/bubblegum:latest
 			if [ $? -eq 0 ]; then
 				echo "Use the 'local-stop' script to end the program."
 			else
@@ -35,15 +35,3 @@ else
 	fi
 
 fi
-
-
-
-	#
-    # HOST=$1
-    # KEY=$2
-    # echo "Initialising instance..."
-    # ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$1 'wget -O - https://gist.githubusercontent.com/HarriBellThomas/22af64d909627b9f7a84f5fecb4da04c/raw/f54623819f07dfd3640d96bfb7e7b496dcc027c8/bubblegum-init.sh | bash'
-    # echo "Setup, starting application..."
-    # ssh -oStrictHostKeyChecking=no -i $KEY ec2-user@$1 'docker pull harribellthomas/bubblegum-proxy:latest && docker run -d --rm -p 80:80 -p 443:443 -p 8080:8080 -p 7000:7000 -p 7000:7000/udp -p 7500:7500 -p 32091-32100:32091-32100 -p 32000-32090:32000-32090/udp -e FRP_HOST_ADDR="'${HOST}'" -e FRP_TOKEN="'${PASS}'" --name bubblegum-proxy harribellthomas/bubblegum-proxy:latest'
-    # echo "Complete."
-    # echo "Token = $PASS"
