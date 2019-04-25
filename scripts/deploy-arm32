@@ -1,0 +1,24 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && cd .. && pwd )"
+CURRENT="$(pwd)"
+
+cd $DIR
+
+# Build the application and structure build folder for deployment.
+sbt clean
+sbt dist
+mkdir .tmp
+set -x
+unzip -d .tmp target/universal/*.zip
+mv .tmp/*/* .tmp/
+rm .tmp/bin/*.bat
+mv .tmp/bin/* .tmp/bin/start
+
+# Build and publish the Docker image.
+docker build -t bubblegum-app-arm32 -f Dockerfile-arm32 .
+docker tag bubblegum-app-arm32 compsci/bubblegum-rpi
+docker push compsci/bubblegum-rpi
+
+# Cleanup
+rm -rf .tmp
+cd $CURRENT
